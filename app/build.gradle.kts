@@ -6,14 +6,12 @@ plugins {
 
 android {
     namespace = "com.hora.varisankya"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36 
 
     defaultConfig {
         applicationId = "com.hora.varisankya"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = 26 // Updated to a more modern baseline
+        targetSdk = 36 
         versionCode = 1
         versionName = "1.2"
 
@@ -48,6 +46,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation("com.squareup.picasso:picasso:2.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
