@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".SettingsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceContainer">
+        android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -19,73 +18,76 @@
             android:layout_height="?attr/actionBarSize"
             app:title="Settings" />
 
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/logout_button"
-        android:layout_below="@id/app_bar">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="24dp">
 
             <TextView
-                style="?attr/textAppearanceTitleMedium"
+                style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Appearance" />
+                android:text="Appearance"
+                android:textStyle="bold" />
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
+            <com.google.android.material.chip.ChipGroup
                 android:id="@+id/theme_toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
-                <Button
+                <com.google.android.material.chip.Chip
                     android:id="@+id/theme_device"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="System" />
+                    android:text="System"
+                    app:checkedIconVisible="false" />
 
-                <Button
+                <com.google.android.material.chip.Chip
                     android:id="@+id/theme_light"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Light" />
+                    android:text="Light"
+                    app:checkedIconVisible="false" />
 
-                <Button
+                <com.google.android.material.chip.Chip
                     android:id="@+id/theme_dark"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="0dp"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Dark" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
+                    android:text="Dark"
+                    app:checkedIconVisible="false" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp" /> <!-- Spacer -->
+
+            <Button
+                android:id="@+id/logout_button"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:padding="16dp"
+                android:text="Logout from Varisankya"
+                android:textColor="?attr/colorError"
+                app:strokeColor="?attr/colorError" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <Button
-        android:id="@+id/logout_button"
-        style="@style/Widget.Material3.Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        android:text="Logout" />
-
-</RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

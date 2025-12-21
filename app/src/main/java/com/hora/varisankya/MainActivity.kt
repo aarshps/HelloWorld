@@ -1,30 +1,47 @@
 package com.hora.varisankya
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
+    private lateinit var firestore: FirebaseFirestore
 
     // UI Views
     private lateinit var btnSignIn: Button
@@ -33,6 +50,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appLogoImage: ImageView
     private lateinit var loginContainer: LinearLayout
     private lateinit var appBar: AppBarLayout
+    private lateinit var subscriptionsRecyclerView: RecyclerView
+    private lateinit var fabAddSubscription: ExtendedFloatingActionButton
+    private lateinit var emptyStateContainer: LinearLayout
 
     private val WEB_CLIENT_ID = "663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com"
 
@@ -47,26 +67,120 @@ class MainActivity : AppCompatActivity() {
         appLogoImage = findViewById(R.id.app_logo_image)
         loginContainer = findViewById(R.id.login_container)
         appBar = findViewById(R.id.app_bar)
+        subscriptionsRecyclerView = findViewById(R.id.subscriptions_recycler_view)
+        fabAddSubscription = findViewById(R.id.fab_add_subscription)
+        emptyStateContainer = findViewById(R.id.empty_state_container)
 
         // Initialize Firebase and Credential Manager
         auth = FirebaseAuth.getInstance()
         credentialManager = CredentialManager.create(this)
+        firestore = FirebaseFirestore.getInstance()
 
         // Check current user and update UI
         updateUI(auth.currentUser != null)
+        if (auth.currentUser != null) {
+            setupRecyclerView()
+            setupNotifications()
+        }
 
         // Set click listeners
         settingsButton.setOnClickListener { view ->
-            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         btnSignIn.setOnClickListener { view ->
-            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            } else {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            }
             signInWithGoogle()
+        }
+
+        fabAddSubscription.setOnClickListener { view ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            } else {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            }
+            showAddSubscriptionSheet()
+        }
+
+        // FAB scroll behavior
+        subscriptionsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (dy > 0) fabAddSubscription.shrink()
+                else if (dy < 0) fabAddSubscription.extend()
+            }
+        })
+
+        checkNotificationPermission()
+    }
+
+    private fun checkNotificationPermission() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                101
+            )
         }
     }
 
+    private fun setupNotifications() {
+        val workRequest = PeriodicWorkRequestBuilder<SubscriptionNotificationWorker>(
+            24, TimeUnit.HOURS
+        ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "subscription_notifications",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
+    }
+
+    private fun setupRecyclerView() {
+        subscriptionsRecyclerView.layoutManager = LinearLayoutManager(this)
+        loadSubscriptions()
+    }
+
+    private fun loadSubscriptions() {
+        auth.currentUser?.uid?.let { userId ->
+            firestore.collection("users").document(userId).collection("subscriptions")
+                .orderBy("dueDate", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshots, e ->
+                    if (e != null) {
+                        Log.w("Firestore", "Listen failed.", e)
+                        return@addSnapshotListener
+                    }
+
+                    val subscriptions = snapshots?.toObjects(Subscription::class.java) ?: emptyList()
+                    if (subscriptions.isEmpty()) {
+                        emptyStateContainer.visibility = View.VISIBLE
+                        subscriptionsRecyclerView.visibility = View.GONE
+                    } else {
+                        emptyStateContainer.visibility = View.GONE
+                        subscriptionsRecyclerView.visibility = View.VISIBLE
+                        subscriptionsRecyclerView.adapter = SubscriptionAdapter(subscriptions) { subscription ->
+                            showAddSubscriptionSheet(subscription)
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun showAddSubscriptionSheet(subscription: Subscription? = null) {
+        val addSubscriptionBottomSheet = AddSubscriptionBottomSheet(subscription) {
+            // Firestore's snapshot listener handles reload
+        }
+        addSubscriptionBottomSheet.show(supportFragmentManager, "AddSubscriptionBottomSheet")
+    }
+    
     private fun signInWithGoogle() {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
@@ -94,6 +208,10 @@ class MainActivity : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 updateUI(task.isSuccessful)
+                if (task.isSuccessful) {
+                    setupRecyclerView()
+                    setupNotifications()
+                }
             }
     }
 
@@ -101,6 +219,8 @@ class MainActivity : AppCompatActivity() {
         if (isLoggedIn) {
             loginContainer.visibility = View.GONE
             appBar.visibility = View.VISIBLE
+            subscriptionsRecyclerView.visibility = View.VISIBLE
+            fabAddSubscription.visibility = View.VISIBLE
             profileImage.visibility = View.VISIBLE
             settingsButton.visibility = View.VISIBLE
             appLogoImage.visibility = View.VISIBLE
@@ -111,6 +231,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             loginContainer.visibility = View.VISIBLE
             appBar.visibility = View.GONE
+            subscriptionsRecyclerView.visibility = View.GONE
+            fabAddSubscription.visibility = View.GONE
         }
     }
 }

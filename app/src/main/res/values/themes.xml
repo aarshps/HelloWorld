@@ -6,4 +6,44 @@
         <!-- Ensure status bar icons are dark in light mode -->
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- Custom Shape Appearance for fully rounded corners -->
+    <style name="App.ShapeAppearanceOverlay.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Style for rounded text input fields -->
+    <style name="App.TextInputLayout.Rounded" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="shapeAppearanceOverlay">@style/App.ShapeAppearanceOverlay.Rounded</item>
+    </style>
+
+    <!-- Style for rounded dropdown menus -->
+    <style name="App.TextInputLayout.Rounded.ExposedDropdownMenu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="shapeAppearanceOverlay">@style/App.ShapeAppearanceOverlay.Rounded</item>
+    </style>
+
+    <!-- Base style for the button toggle group -->
+    <style name="App.ButtonToggleGroup" parent="Widget.MaterialComponents.MaterialButtonToggleGroup">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <!-- Style for the rounded button toggle group -->
+    <style name="App.ButtonToggleGroup.Rounded" parent="App.ButtonToggleGroup">
+        <item name="shapeAppearanceOverlay">@style/App.ShapeAppearanceOverlay.Rounded</item>
+    </style>
+
+    <!-- Style for Destructive/Delete Buttons (Outlined Error) -->
+    <style name="App.Button.Destructive" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">?attr/colorError</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="rippleColor">?attr/colorError</item>
+    </style>
+
+    <!-- Style for Mark Paid Buttons (Standard Tonal - uses Secondary colors) -->
+    <style name="App.Button.Success" parent="Widget.Material3.Button.TonalButton">
+        <!-- Uses default secondary/tertiary colors -->
+    </style>
+
 </resources>

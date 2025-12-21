@@ -1,0 +1,260 @@
+package com.hora.varisankya
+
+import android.os.Build
+import android.os.Bundle
+import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AutoCompleteTextView
+import android.widget.Button
+import android.widget.TextView
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
+class AddSubscriptionBottomSheet(
+    private val subscription: Subscription? = null,
+    private val onSave: () -> Unit
+) : BottomSheetDialogFragment() {
+
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+    private var selectedDueDate: Date? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val view = inflater.inflate(R.layout.bottom_sheet_add_subscription, container, false)
+        firestore = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
+        
+        val titleTextView = view.findViewById<TextView>(R.id.bottom_sheet_title)
+        val nameEditText = view.findViewById<TextInputEditText>(R.id.edit_text_name)
+        val dueDateEditText = view.findViewById<TextInputEditText>(R.id.edit_text_due_date)
+        val costEditText = view.findViewById<TextInputEditText>(R.id.edit_text_cost)
+        val currencyAutoComplete = view.findViewById<AutoCompleteTextView>(R.id.auto_complete_currency)
+        val recurrenceAutoComplete = view.findViewById<AutoCompleteTextView>(R.id.auto_complete_recurrence)
+        val frequencyEditText = view.findViewById<TextInputEditText>(R.id.edit_text_frequency)
+        val tilFrequency = view.findViewById<TextInputLayout>(R.id.til_frequency)
+        val categoryAutoComplete = view.findViewById<AutoCompleteTextView>(R.id.auto_complete_category)
+        val saveButton = view.findViewById<Button>(R.id.button_save)
+        val deleteButton = view.findViewById<Button>(R.id.button_delete)
+        val markPaidButton = view.findViewById<Button>(R.id.button_mark_paid)
+
+        titleTextView.text = if (subscription == null) "Add Subscription" else "Edit Subscription"
+
+        val addHaptic = { v: View -> 
+            v.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            Unit
+        }
+        val addStrongHaptic = { v: View -> 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                v.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            } else {
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            }
+            Unit
+        }
+
+        nameEditText.setOnFocusChangeListener { v, hasFocus -> if(hasFocus) addHaptic(v) }
+        costEditText.setOnFocusChangeListener { v, hasFocus -> if(hasFocus) addHaptic(v) }
+        frequencyEditText.setOnFocusChangeListener { v, hasFocus -> if(hasFocus) addHaptic(v) }
+
+        dueDateEditText.isFocusable = false
+        dueDateEditText.setOnClickListener {
+            addHaptic(it)
+            val datePicker = MaterialDatePicker.Builder.datePicker()
+                .setTitleText("Select Due Date")
+                .setSelection(subscription?.dueDate?.time ?: MaterialDatePicker.todayInUtcMilliseconds())
+                .build()
+
+            datePicker.addOnPositiveButtonClickListener { ts ->
+                selectedDueDate = Date(ts)
+                val format = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                format.timeZone = TimeZone.getTimeZone("UTC")
+                dueDateEditText.setText(format.format(selectedDueDate!!))
+            }
+            datePicker.show(childFragmentManager, "DATE_PICKER")
+        }
+
+        val currencies = PreferenceHelper.getPersonalizedList(requireContext(), "currency", arrayOf("USD", "EUR", "GBP", "INR"))
+        val recurrenceOptions = PreferenceHelper.getPersonalizedList(requireContext(), "recurrence", arrayOf("Monthly", "Yearly", "Weekly", "Daily", "Custom"))
+        val categories = PreferenceHelper.getPersonalizedList(requireContext(), "category", arrayOf("Entertainment", "Utilities", "Work", "Other"))
+
+        setupSelection(currencyAutoComplete, "Select Currency", currencies, addHaptic)
+        setupSelection(recurrenceAutoComplete, "Select Recurrence", recurrenceOptions, addHaptic) { selected ->
+             if (selected == "Custom") {
+                 tilFrequency.visibility = View.GONE
+                 frequencyEditText.setText("")
+             } else {
+                 tilFrequency.visibility = View.VISIBLE
+                 frequencyEditText.isEnabled = true
+                 if (frequencyEditText.text.isNullOrEmpty()) frequencyEditText.setText("1")
+             }
+        }
+        setupSelection(categoryAutoComplete, "Select Category", categories, addHaptic)
+
+        if (subscription != null) {
+            nameEditText.setText(subscription.name)
+            selectedDueDate = subscription.dueDate
+            subscription.dueDate?.let { date ->
+                val format = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                dueDateEditText.setText(format.format(date))
+            }
+            costEditText.setText(subscription.cost.toString())
+            currencyAutoComplete.setText(subscription.currency, false)
+            categoryAutoComplete.setText(subscription.category, false)
+
+            val rec = subscription.recurrence
+            if (rec == "Custom") {
+                recurrenceAutoComplete.setText("Custom", false)
+                tilFrequency.visibility = View.GONE
+                frequencyEditText.setText("")
+            } else if (rec.startsWith("Every ")) {
+                val parts = rec.split(" ")
+                if (parts.size >= 3) {
+                     frequencyEditText.setText(parts[1])
+                     val unit = parts[2]
+                     val mapped = when(unit) {
+                         "Months" -> "Monthly"
+                         "Years" -> "Yearly"
+                         "Weeks" -> "Weekly"
+                         "Days" -> "Daily"
+                         else -> "Monthly"
+                     }
+                     recurrenceAutoComplete.setText(mapped, false)
+                     tilFrequency.visibility = View.VISIBLE
+                }
+            } else {
+                 frequencyEditText.setText("1")
+                 recurrenceAutoComplete.setText(rec, false)
+                 tilFrequency.visibility = View.VISIBLE
+            }
+
+            deleteButton.visibility = View.VISIBLE
+            deleteButton.setOnClickListener {
+                addStrongHaptic(it)
+                val userId = auth.currentUser?.uid ?: return@setOnClickListener
+                firestore.collection("users").document(userId).collection("subscriptions").document(subscription.id!!).delete()
+                dismiss()
+            }
+
+            markPaidButton.visibility = View.VISIBLE
+            markPaidButton.setOnClickListener {
+                addHaptic(it)
+                // Construct current subscription state from UI
+                val currentSubscription = Subscription(
+                    id = subscription.id,
+                    name = nameEditText.text.toString(),
+                    dueDate = selectedDueDate,
+                    cost = costEditText.text.toString().toDoubleOrNull() ?: 0.0,
+                    currency = currencyAutoComplete.text.toString(),
+                    recurrence = getRecurrenceString(recurrenceAutoComplete.text.toString(), frequencyEditText.text.toString()),
+                    category = categoryAutoComplete.text.toString()
+                )
+                val paymentSheet = PaymentBottomSheet(currentSubscription) {
+                    onSave() 
+                    dismiss() 
+                }
+                paymentSheet.show(parentFragmentManager, "PAYMENT_SHEET")
+            }
+
+        } else {
+             frequencyEditText.setText("1")
+             recurrenceAutoComplete.setText(recurrenceOptions[0], false)
+             if (recurrenceOptions[0] == "Custom") {
+                 tilFrequency.visibility = View.GONE
+             } else {
+                 tilFrequency.visibility = View.VISIBLE
+             }
+        }
+        
+        currencyAutoComplete.setOnDismissListener { currencyAutoComplete.clearFocus() }
+        recurrenceAutoComplete.setOnDismissListener { recurrenceAutoComplete.clearFocus() }
+        categoryAutoComplete.setOnDismissListener { categoryAutoComplete.clearFocus() }
+
+        saveButton.setOnClickListener {
+            addStrongHaptic(it)
+            val userId = auth.currentUser?.uid ?: return@setOnClickListener
+
+            val currency = currencyAutoComplete.text.toString()
+            val category = categoryAutoComplete.text.toString()
+            val finalRecurrence = getRecurrenceString(recurrenceAutoComplete.text.toString(), frequencyEditText.text.toString())
+
+            PreferenceHelper.recordUsage(requireContext(), "currency", currency)
+            PreferenceHelper.recordUsage(requireContext(), "category", category)
+            PreferenceHelper.recordUsage(requireContext(), "recurrence", recurrenceAutoComplete.text.toString())
+
+            val newSubscription = Subscription(
+                id = subscription?.id,
+                name = nameEditText.text.toString(),
+                dueDate = selectedDueDate,
+                cost = costEditText.text.toString().toDoubleOrNull() ?: 0.0,
+                currency = currency,
+                recurrence = finalRecurrence,
+                category = category
+            )
+
+            val collection = firestore.collection("users").document(userId).collection("subscriptions")
+            if (newSubscription.id != null) {
+                collection.document(newSubscription.id).set(newSubscription)
+            } else {
+                collection.add(newSubscription)
+            }
+            onSave()
+            dismiss()
+        }
+
+        return view
+    }
+
+    private fun getRecurrenceString(recUnit: String, freqText: String): String {
+        val freq = freqText.toIntOrNull() ?: 1
+        return if (recUnit == "Custom") {
+            "Custom"
+        } else if (freq == 1) {
+            recUnit
+        } else {
+            val pluralUnit = when(recUnit) {
+                "Monthly" -> "Months"
+                "Yearly" -> "Years"
+                "Weekly" -> "Weeks"
+                "Daily" -> "Days"
+                else -> recUnit
+            }
+            "Every $freq $pluralUnit"
+        }
+    }
+
+    private fun setupSelection(
+        view: AutoCompleteTextView, 
+        title: String, 
+        options: Array<String>,
+        addHaptic: (View) -> Unit,
+        onItemSelected: ((String) -> Unit)? = null
+    ) {
+        view.isFocusable = false
+        view.isClickable = true
+        view.setOnClickListener {
+            addHaptic(it)
+            val bottomSheet = SelectionBottomSheet(
+                title = title,
+                options = options,
+                selectedOption = view.text.toString()
+            ) { selected ->
+                view.setText(selected, false)
+                onItemSelected?.invoke(selected)
+            }
+            bottomSheet.show(childFragmentManager, title)
+        }
+    }
+}

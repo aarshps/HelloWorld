@@ -6,9 +6,7 @@ import android.view.HapticFeedbackConstants
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.chip.ChipGroup
 import com.google.firebase.auth.FirebaseAuth
 
 class SettingsActivity : AppCompatActivity() {
@@ -28,17 +26,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupThemeToggle() {
-        val themeToggleGroup = findViewById<MaterialButtonToggleGroup>(R.id.theme_toggle_group)
+        val themeToggleGroup = findViewById<ChipGroup>(R.id.theme_toggle_group)
         when (AppCompatDelegate.getDefaultNightMode()) {
             AppCompatDelegate.MODE_NIGHT_NO -> themeToggleGroup.check(R.id.theme_light)
             AppCompatDelegate.MODE_NIGHT_YES -> themeToggleGroup.check(R.id.theme_dark)
             else -> themeToggleGroup.check(R.id.theme_device)
         }
 
-        themeToggleGroup.addOnButtonCheckedListener { group, checkedId, isChecked ->
-            if (isChecked) {
+        themeToggleGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
                 group.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                when (checkedId) {
+                when (checkedIds[0]) {
                     R.id.theme_light -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                     R.id.theme_dark -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                     R.id.theme_device -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -51,23 +49,19 @@ class SettingsActivity : AppCompatActivity() {
         val logoutButton = findViewById<Button>(R.id.logout_button)
         logoutButton.setOnClickListener { view ->
             view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+
+            // Sign out of Firebase
             auth.signOut()
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com")
-                .requestEmail()
-                .build()
-            val googleSignInClient = GoogleSignIn.getClient(this, gso)
-            googleSignInClient.signOut().addOnCompleteListener {
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
-            }
+
+            // Return to the main activity, which will now show the login screen
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // Add haptic feedback to the back arrow
         window.decorView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         finish()
         return true
