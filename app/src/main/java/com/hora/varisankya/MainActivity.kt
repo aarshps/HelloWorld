@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.TypedValue
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.Button
@@ -22,6 +21,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -53,8 +53,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var subscriptionsRecyclerView: RecyclerView
     private lateinit var fabAddSubscription: ExtendedFloatingActionButton
     private lateinit var emptyStateContainer: LinearLayout
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private val WEB_CLIENT_ID = "663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com"
+
+    private var lastFirstVisibleItem = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +73,7 @@ class MainActivity : AppCompatActivity() {
         subscriptionsRecyclerView = findViewById(R.id.subscriptions_recycler_view)
         fabAddSubscription = findViewById(R.id.fab_add_subscription)
         emptyStateContainer = findViewById(R.id.empty_state_container)
+        swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
 
         // Initialize Firebase and Credential Manager
         auth = FirebaseAuth.getInstance()
@@ -81,6 +85,12 @@ class MainActivity : AppCompatActivity() {
         if (auth.currentUser != null) {
             setupRecyclerView()
             setupNotifications()
+        }
+
+        // Setup Swipe Refresh
+        swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+            loadSubscriptions()
         }
 
         // Set click listeners
@@ -107,11 +117,19 @@ class MainActivity : AppCompatActivity() {
             showAddSubscriptionSheet()
         }
 
-        // FAB scroll behavior
+        // FAB scroll behavior and Haptics
         subscriptionsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 0) fabAddSubscription.shrink()
                 else if (dy < 0) fabAddSubscription.extend()
+
+                val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
+                val firstVisibleItem = layoutManager?.findFirstVisibleItemPosition() ?: -1
+                
+                if (firstVisibleItem != lastFirstVisibleItem && firstVisibleItem != -1) {
+                    recyclerView.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    lastFirstVisibleItem = firstVisibleItem
+                }
             }
         })
 
@@ -154,6 +172,7 @@ class MainActivity : AppCompatActivity() {
             firestore.collection("users").document(userId).collection("subscriptions")
                 .orderBy("dueDate", Query.Direction.ASCENDING)
                 .addSnapshotListener { snapshots, e ->
+                    swipeRefreshLayout.isRefreshing = false
                     if (e != null) {
                         Log.w("Firestore", "Listen failed.", e)
                         return@addSnapshotListener
@@ -171,6 +190,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+        } ?: run {
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 

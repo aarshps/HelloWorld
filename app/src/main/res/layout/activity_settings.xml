@@ -35,8 +35,7 @@
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Appearance"
-                android:textStyle="bold" />
+                android:text="Appearance" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/theme_toggle_group"
@@ -72,22 +71,25 @@
 
             </com.google.android.material.chip.ChipGroup>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="100dp" /> <!-- Spacer -->
-
-            <Button
-                android:id="@+id/logout_button"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:padding="16dp"
-                android:text="Logout from Varisankya"
-                android:textColor="?attr/colorError"
-                app:strokeColor="?attr/colorError" />
+            <!-- Additional settings can be added here -->
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:padding="24dp">
+
+        <Button
+            android:id="@+id/logout_button"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout from Varisankya"
+            android:textColor="?attr/colorError"
+            android:padding="16dp" />
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

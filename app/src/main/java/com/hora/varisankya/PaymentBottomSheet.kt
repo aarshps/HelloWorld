@@ -7,14 +7,18 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -32,6 +36,7 @@ class PaymentBottomSheet(
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private lateinit var historyRecycler: RecyclerView
+    private lateinit var noHistoryContainer: View
     private lateinit var textNoHistory: TextView
     private lateinit var progressHistory: ProgressBar
     private lateinit var btnPayCurrent: Button
@@ -51,6 +56,7 @@ class PaymentBottomSheet(
         auth = FirebaseAuth.getInstance()
 
         historyRecycler = view.findViewById(R.id.recycler_history)
+        noHistoryContainer = view.findViewById(R.id.no_history_container)
         textNoHistory = view.findViewById(R.id.text_no_history)
         progressHistory = view.findViewById(R.id.progress_history)
         btnPayCurrent = view.findViewById(R.id.btn_pay_current)
@@ -89,6 +95,7 @@ class PaymentBottomSheet(
                 val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
                 calendar.timeInMillis = ts
                 val selectedDate = calendar.time
+                
                 val next = calculateNextDueDate(selectedDate, subscription.recurrence)
                 recordPayment(selectedDate, next)
             }
@@ -147,13 +154,13 @@ class PaymentBottomSheet(
         val userId = auth.currentUser?.uid ?: return
         val subId = subscription.id ?: run {
             progressHistory.visibility = View.GONE
-            textNoHistory.visibility = View.VISIBLE
+            noHistoryContainer.visibility = View.VISIBLE
             textNoHistory.text = "Error: Subscription ID missing"
             return
         }
 
         progressHistory.visibility = View.VISIBLE
-        textNoHistory.visibility = View.GONE
+        noHistoryContainer.visibility = View.GONE
 
         firestore.collection("users").document(userId)
             .collection("subscriptions").document(subId)
@@ -163,22 +170,35 @@ class PaymentBottomSheet(
             .get()
             .addOnSuccessListener { snapshots ->
                 if (!isAdded) return@addOnSuccessListener
+                
+                // M3E Smooth Fade-out for loader
+                val fadeOut = AlphaAnimation(1f, 0f).apply { duration = 200 }
+                progressHistory.startAnimation(fadeOut)
                 progressHistory.visibility = View.GONE
+                
                 val payments = snapshots.toObjects(PaymentRecord::class.java)
                 if (payments.isEmpty()) {
                     historyRecycler.visibility = View.GONE
-                    textNoHistory.visibility = View.VISIBLE
+                    noHistoryContainer.visibility = View.VISIBLE
+                    // Smooth Fade-in for Empty State
+                    val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 300 }
+                    noHistoryContainer.startAnimation(fadeIn)
                     textNoHistory.text = "No Payment History"
                 } else {
+                    noHistoryContainer.visibility = View.GONE
                     historyRecycler.visibility = View.VISIBLE
-                    textNoHistory.visibility = View.GONE
-                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency)
+                    // Smooth Fade-in for Recycler
+                    val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 300 }
+                    historyRecycler.startAnimation(fadeIn)
+                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency, 
+                        onEditClicked = { record -> editPaymentDate(record) },
+                        onDeleteClicked = { record -> confirmDeletePayment(record) }
+                    )
                 }
             }
             .addOnFailureListener { e ->
                 if (!isAdded) return@addOnFailureListener
                 Log.e("PaymentBottomSheet", "History Error: ${e.message}", e)
-                // Fallback: try without ordering in case index is missing
                 loadHistorySimple(userId, subId)
             }
     }
@@ -195,18 +215,81 @@ class PaymentBottomSheet(
                 val payments = snapshots.toObjects(PaymentRecord::class.java).sortedByDescending { it.date }
                 if (payments.isEmpty()) {
                     historyRecycler.visibility = View.GONE
-                    textNoHistory.visibility = View.VISIBLE
+                    noHistoryContainer.visibility = View.VISIBLE
                 } else {
+                    noHistoryContainer.visibility = View.GONE
                     historyRecycler.visibility = View.VISIBLE
-                    textNoHistory.visibility = View.GONE
-                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency)
+                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency,
+                        onEditClicked = { record -> editPaymentDate(record) },
+                        onDeleteClicked = { record -> confirmDeletePayment(record) }
+                    )
                 }
             }
             .addOnFailureListener { e ->
                 if (!isAdded) return@addOnFailureListener
                 progressHistory.visibility = View.GONE
-                textNoHistory.visibility = View.VISIBLE
+                noHistoryContainer.visibility = View.VISIBLE
                 textNoHistory.text = "Permission Denied: Ensure Firestore rules allow access."
+            }
+    }
+
+    private fun confirmDeletePayment(record: PaymentRecord) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete Payment Record")
+            .setMessage("Are you sure you want to delete this payment record from your history?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Delete") { _, _ ->
+                deletePayment(record)
+            }
+            .show()
+    }
+
+    private fun deletePayment(record: PaymentRecord) {
+        val userId = auth.currentUser?.uid ?: return
+        val subId = subscription.id ?: return
+        val paymentId = record.id ?: return
+
+        firestore.collection("users").document(userId)
+            .collection("subscriptions").document(subId)
+            .collection("payments").document(paymentId)
+            .delete()
+            .addOnSuccessListener {
+                if (isAdded) {
+                    Toast.makeText(context, "Payment deleted", Toast.LENGTH_SHORT).show()
+                    loadHistory() 
+                }
+            }
+    }
+
+    private fun editPaymentDate(record: PaymentRecord) {
+        val datePicker = MaterialDatePicker.Builder.datePicker()
+            .setTitleText("Edit Payment Date")
+            .setSelection(record.date?.time ?: MaterialDatePicker.todayInUtcMilliseconds())
+            .build()
+
+        datePicker.addOnPositiveButtonClickListener { ts ->
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            calendar.timeInMillis = ts
+            val newDate = calendar.time
+            updatePaymentDate(record, newDate)
+        }
+        datePicker.show(childFragmentManager, "EDIT_PAY_DATE_PICKER")
+    }
+
+    private fun updatePaymentDate(record: PaymentRecord, newDate: Date) {
+        val userId = auth.currentUser?.uid ?: return
+        val subId = subscription.id ?: return
+        val paymentId = record.id ?: return
+
+        firestore.collection("users").document(userId)
+            .collection("subscriptions").document(subId)
+            .collection("payments").document(paymentId)
+            .update("date", newDate)
+            .addOnSuccessListener {
+                if (isAdded) {
+                    Toast.makeText(context, "Payment date updated", Toast.LENGTH_SHORT).show()
+                    loadHistory()
+                }
             }
     }
 
@@ -247,5 +330,24 @@ class PaymentBottomSheet(
                 Toast.makeText(context, "Failed: ${e.message}. Check Firestore Rules.", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog as? BottomSheetDialog
+        val behavior = dialog?.behavior
+        behavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheet.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+                }
+            }
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        })
     }
 }

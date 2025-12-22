@@ -1,14 +1,18 @@
 package com.hora.varisankya
 
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.TextView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.textfield.TextInputEditText
@@ -72,6 +76,7 @@ class AddSubscriptionBottomSheet(
         dueDateEditText.isFocusable = false
         dueDateEditText.setOnClickListener {
             addHaptic(it)
+            clearCurrentFocus()
             val datePicker = MaterialDatePicker.Builder.datePicker()
                 .setTitleText("Select Due Date")
                 .setSelection(subscription?.dueDate?.time ?: MaterialDatePicker.todayInUtcMilliseconds())
@@ -151,7 +156,6 @@ class AddSubscriptionBottomSheet(
             markPaidButton.visibility = View.VISIBLE
             markPaidButton.setOnClickListener {
                 addHaptic(it)
-                // Construct current subscription state from UI
                 val currentSubscription = Subscription(
                     id = subscription.id,
                     name = nameEditText.text.toString(),
@@ -217,6 +221,34 @@ class AddSubscriptionBottomSheet(
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog as? BottomSheetDialog
+        val behavior = dialog?.behavior
+        behavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheet.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
+                }
+            }
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        })
+    }
+
+    private fun clearCurrentFocus() {
+        val currentFocus = dialog?.currentFocus
+        if (currentFocus != null) {
+            currentFocus.clearFocus()
+            val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.hideSoftInputFromWindow(currentFocus.windowToken, 0)
+        }
+    }
+
     private fun getRecurrenceString(recUnit: String, freqText: String): String {
         val freq = freqText.toIntOrNull() ?: 1
         return if (recUnit == "Custom") {
@@ -246,6 +278,7 @@ class AddSubscriptionBottomSheet(
         view.isClickable = true
         view.setOnClickListener {
             addHaptic(it)
+            clearCurrentFocus()
             val bottomSheet = SelectionBottomSheet(
                 title = title,
                 options = options,

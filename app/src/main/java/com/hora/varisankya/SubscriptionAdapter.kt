@@ -73,13 +73,13 @@ class SubscriptionAdapter(
                 )
                 daysLeft == 1 -> Triple(
                     "Tomorrow",
-                    com.google.android.material.R.attr.colorErrorContainer,
-                    com.google.android.material.R.attr.colorOnErrorContainer
+                    com.google.android.material.R.attr.colorTertiaryContainer,
+                    com.google.android.material.R.attr.colorOnTertiaryContainer
                 )
                 else -> Triple(
                     "$daysLeft Days",
-                    if (daysLeft <= 7) com.google.android.material.R.attr.colorTertiaryContainer else com.google.android.material.R.attr.colorSurfaceContainerHigh,
-                    if (daysLeft <= 7) com.google.android.material.R.attr.colorOnTertiaryContainer else com.google.android.material.R.attr.colorOnSurface
+                    if (daysLeft <= 7) com.google.android.material.R.attr.colorSecondaryContainer else com.google.android.material.R.attr.colorSurfaceContainerHigh,
+                    if (daysLeft <= 7) com.google.android.material.R.attr.colorOnSecondaryContainer else com.google.android.material.R.attr.colorOnSurface
                 )
             }
 

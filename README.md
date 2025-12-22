@@ -2,17 +2,21 @@
 
 Varisankya is a modern, high-performance Android application designed to help users track and manage their recurring subscriptions with ease. Built with a focus on the **Material 3 Expressive (M3E)** design language, it offers a tactile, personalized, and visually stunning experience.
 
-## ✨ Latest Release: v1.3
+## ✨ Latest Release: v1.4
 
-This release marks a significant milestone in UX/UI refinement and functional stability.
+This release further refines the UX/UI, improves interaction models, and polishes the expressive design language.
 
-### What's New in v1.3
-*   **Material 3 Expressive Audit**: Full overhaul of the UI/UX to follow the latest M3 guidelines, including filled card styles, expressive typography, and refined spacing.
-*   **Intelligent Search**: Added auto-focused search bars in all selection modals (Currency, Period, Category) with real-time filtering.
-*   **Enhanced Payment Timeline**: A vertical timeline view for payment history with automated "No History" states.
-*   **Smart Schedule Shifting**: "Change Schedule & Pay" now correctly recalculates future due dates based on your custom payment date.
-*   **Expressive Navigation**: Standardized haptics (Confirm, Virtual Key) and an `ExtendedFloatingActionButton` with scroll-aware collapse behavior.
-*   **Bug Fixes**: Resolved Firestore permission issues and corrected sub-collection access patterns for reliable syncing.
+### What's New in v1.4
+*   **Intuitive Payment Editing**: Removed the dedicated edit icon in the payment history. Now, the entire row is clickable with a subtle ripple effect, making it faster and more intuitive to update past payment dates.
+*   **Unified Visual Language**: Standardized the destructive action styling. The payment deletion icon now matches the subscription deletion icon's color (Error token) for a consistent and clear visual hierarchy.
+*   **Fluid Motion & Transitions**: Integrated Material 3 Expressive alpha transitions. All state changes now feature smooth, non-stuttering fade animations, eliminating jarring layout shifts.
+*   **Refined Typography**: Removed aggressive "hard" bolding throughout the app to align with the cleaner design language of Android 16 QPR 3.
+*   **Immersive Haptic Feedback**: Subtle, tactile haptics integrated for scrolling, modal expansion, and all meaningful interactions.
+*   **Intelligent Search**: Auto-focused search bars in all selection modals (Currency, Period, Category) with real-time filtering and a clean, icon-free design.
+*   **Optimized Form Layouts**: 
+    *   Single-line Due Date layout with grouped Frequency/Period fields.
+    *   Streamlined button hierarchy for faster subscription entry and editing.
+*   **Bug Fixes & Stability**: Resolved Pull-to-Refresh behavior and perfected chip spacing in selection modals.
 
 ## 🚀 Key Features
 
@@ -21,10 +25,6 @@ This release marks a significant milestone in UX/UI refinement and functional st
 *   **Usage-Based Personalization**: The app learns your preferences, bubbling up your most used currencies and categories.
 *   **Secure Authentication**: Google Sign-In integration for seamless cloud sync.
 *   **Cloud Architecture**: Real-time data persistence with Firebase Firestore.
-*   **Design First**:
-    *   Material You Dynamic Color support.
-    *   Haptic Feedback for every meaningful interaction.
-    *   Dark Mode by default.
 
 ## 🛠 Technical Specifications
 
@@ -32,7 +32,6 @@ This release marks a significant milestone in UX/UI refinement and functional st
 *   **Language**: 100% Kotlin
 *   **UI Framework**: Material Components 1.11.0 (Material 3)
 *   **Backend**: Firebase (Auth & Firestore)
-*   **Worker API**: Android WorkManager
 
 ## 📦 Build & Release
 
@@ -42,24 +41,19 @@ To build the debug APK manually, run:
 ```
 The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Tagging Version v1.3
+### Tagging Version v1.4
 To freeze this state in Git:
 ```bash
 git add .
-git commit -m "chore: freeze state for v1.3 release"
-git tag -a v1.3 -m "Release version 1.3"
-git push origin v1.3
+git commit -m "chore: freeze state for v1.4 release"
+git tag -a v1.4 -m "Release version 1.4"
+git push origin v1.4
 ```
 
 ## ⚙️ Setup
 
 1.  Place your `google-services.json` in the `app/` folder.
-2.  Ensure Firestore Rules allow sub-collection access:
-    ```
-    match /users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    ```
+2.  Ensure Firestore Rules allow sub-collection access.
 3.  Sync and Run from Android Studio.
 
 ## 📜 License
