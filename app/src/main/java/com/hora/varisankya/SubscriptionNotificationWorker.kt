@@ -102,7 +102,8 @@ class SubscriptionNotificationWorker(
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = "Subscription Due"
+        // Concise title for better visibility
+        val title = "Due"
         val message = when (daysLeft) {
             0 -> "${subscription.name} is due today!"
             1 -> "${subscription.name} is due tomorrow!"
@@ -110,7 +111,7 @@ class SubscriptionNotificationWorker(
         }
 
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -133,7 +134,7 @@ class SubscriptionNotificationWorker(
         }
 
         val summaryNotification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setStyle(NotificationCompat.InboxStyle()
                 .setSummaryText("$count subscriptions due soon"))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

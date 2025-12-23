@@ -12,12 +12,14 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +30,7 @@ import androidx.work.WorkManager
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -88,10 +91,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Setup Swipe Refresh
-        swipeRefreshLayout.setOnRefreshListener {
-            swipeRefreshLayout.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-            loadSubscriptions()
-        }
+        setupSwipeRefresh()
 
         // Set click listeners
         settingsButton.setOnClickListener { view ->
@@ -134,6 +134,20 @@ class MainActivity : AppCompatActivity() {
         })
 
         checkNotificationPermission()
+    }
+
+    private fun setupSwipeRefresh() {
+        // Apply Material 3 Expressive colors to SwipeRefreshLayout
+        val colorPrimary = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, android.graphics.Color.BLACK)
+        val colorSurfaceContainer = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainerHigh, android.graphics.Color.WHITE)
+        
+        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(colorSurfaceContainer)
+        swipeRefreshLayout.setColorSchemeColors(colorPrimary)
+
+        swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+            loadSubscriptions()
+        }
     }
 
     private fun checkNotificationPermission() {
@@ -217,8 +231,13 @@ class MainActivity : AppCompatActivity() {
                 val result = credentialManager.getCredential(this@MainActivity, request)
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                 firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
-            } catch (e: GetCredentialException) {
-                Log.e("Auth", "GetCredentialException", e)
+            } catch (e: Exception) {
+                Log.e("Auth", "Credential Manager Error", e)
+                if (e is NoCredentialException) {
+                    Toast.makeText(this@MainActivity, "No accounts found. Please add a Google account.", Toast.LENGTH_LONG).show()
+                } else if (e is GetCredentialException) {
+                     Toast.makeText(this@MainActivity, "Sign in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
                 updateUI(false)
             }
         }
@@ -228,10 +247,13 @@ class MainActivity : AppCompatActivity() {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
-                updateUI(task.isSuccessful)
                 if (task.isSuccessful) {
+                    updateUI(true)
                     setupRecyclerView()
                     setupNotifications()
+                } else {
+                    updateUI(false)
+                    Toast.makeText(this, "Firebase Auth Failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                 }
             }
     }

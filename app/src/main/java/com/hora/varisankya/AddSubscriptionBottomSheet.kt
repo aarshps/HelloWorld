@@ -93,7 +93,7 @@ class AddSubscriptionBottomSheet(
 
         val currencies = PreferenceHelper.getPersonalizedList(requireContext(), "currency", arrayOf("USD", "EUR", "GBP", "INR"))
         val recurrenceOptions = PreferenceHelper.getPersonalizedList(requireContext(), "recurrence", arrayOf("Monthly", "Yearly", "Weekly", "Daily", "Custom"))
-        val categories = PreferenceHelper.getPersonalizedList(requireContext(), "category", arrayOf("Entertainment", "Utilities", "Work", "Other"))
+        val categories = PreferenceHelper.getPersonalizedList(requireContext(), "category", arrayOf("Entertainment", "Utilities", "Work", "Loan", "Software", "Family", "Investment", "Insurance", "Other"))
 
         setupSelection(currencyAutoComplete, "Select Currency", currencies, addHaptic)
         setupSelection(recurrenceAutoComplete, "Select Recurrence", recurrenceOptions, addHaptic) { selected ->

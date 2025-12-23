@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="4dp"
+            app:chipSpacingVertical="8dp"
             app:selectionRequired="false"
             app:singleSelection="true">
 
