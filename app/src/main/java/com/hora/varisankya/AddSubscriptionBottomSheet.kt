@@ -15,6 +15,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
@@ -50,6 +51,7 @@ class AddSubscriptionBottomSheet(
         val frequencyEditText = view.findViewById<TextInputEditText>(R.id.edit_text_frequency)
         val tilFrequency = view.findViewById<TextInputLayout>(R.id.til_frequency)
         val categoryAutoComplete = view.findViewById<AutoCompleteTextView>(R.id.auto_complete_category)
+        val statusSwitch = view.findViewById<MaterialSwitch>(R.id.switch_active_status)
         val saveButton = view.findViewById<Button>(R.id.button_save)
         val deleteButton = view.findViewById<Button>(R.id.button_delete)
         val markPaidButton = view.findViewById<Button>(R.id.button_mark_paid)
@@ -104,6 +106,10 @@ class AddSubscriptionBottomSheet(
         setupSelection(categoryAutoComplete, "Select Category", categories, addHaptic)
 
         if (subscription != null) {
+            statusSwitch.visibility = View.VISIBLE
+            statusSwitch.isChecked = subscription.active
+            statusSwitch.setOnCheckedChangeListener { _, _ -> addHaptic(statusSwitch) }
+
             nameEditText.setText(subscription.name)
             selectedDueDate = subscription.dueDate
             subscription.dueDate?.let { date ->
@@ -158,7 +164,8 @@ class AddSubscriptionBottomSheet(
                     cost = costEditText.text.toString().toDoubleOrNull() ?: 0.0,
                     currency = currencyAutoComplete.text.toString(),
                     recurrence = getRecurrenceString(recurrenceAutoComplete.text.toString(), frequencyEditText.text.toString()),
-                    category = categoryAutoComplete.text.toString()
+                    category = categoryAutoComplete.text.toString(),
+                    active = statusSwitch.isChecked
                 )
                 val paymentSheet = PaymentBottomSheet(currentSubscription) {
                     onSave() 
@@ -168,6 +175,7 @@ class AddSubscriptionBottomSheet(
             }
 
         } else {
+             statusSwitch.visibility = View.GONE
              frequencyEditText.setText("1")
              recurrenceAutoComplete.setText(recurrenceOptions[0], false)
              if (recurrenceOptions[0] == "Custom") {
@@ -193,46 +201,30 @@ class AddSubscriptionBottomSheet(
             PreferenceHelper.recordUsage(requireContext(), "category", category)
             PreferenceHelper.recordUsage(requireContext(), "recurrence", recurrenceAutoComplete.text.toString())
 
-            val newSubscription = Subscription(
-                id = subscription?.id,
-                name = nameEditText.text.toString(),
-                dueDate = selectedDueDate,
-                cost = costEditText.text.toString().toDoubleOrNull() ?: 0.0,
-                currency = currency,
-                recurrence = finalRecurrence,
-                category = category
+            val isActiveStatus = if (subscription != null) statusSwitch.isChecked else true
+
+            val dataMap = hashMapOf(
+                "name" to nameEditText.text.toString(),
+                "dueDate" to selectedDueDate,
+                "cost" to (costEditText.text.toString().toDoubleOrNull() ?: 0.0),
+                "currency" to currency,
+                "recurrence" to finalRecurrence,
+                "category" to category,
+                "active" to isActiveStatus
             )
 
             val collection = firestore.collection("users").document(userId).collection("subscriptions")
-            if (newSubscription.id != null) {
-                collection.document(newSubscription.id).set(newSubscription)
+            if (subscription?.id != null) {
+                collection.document(subscription.id).set(dataMap)
             } else {
-                collection.add(newSubscription)
+                collection.add(dataMap)
             }
+            
             onSave()
             dismiss()
         }
 
         return view
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        PreferenceHelper.performHaptics(view, HapticFeedbackConstants.CONTEXT_CLICK)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val dialog = dialog as? BottomSheetDialog
-        val behavior = dialog?.behavior
-        behavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    PreferenceHelper.performHaptics(bottomSheet, HapticFeedbackConstants.GESTURE_END)
-                }
-            }
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-        })
     }
 
     private fun clearCurrentFocus() {

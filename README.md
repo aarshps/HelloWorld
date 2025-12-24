@@ -2,11 +2,15 @@
 
 Varisankya is a modern, high-performance Android application designed to help users track and manage their recurring subscriptions with ease. Built with a focus on the **Material 3 Expressive (M3E)** design language, it offers a tactile, personalized, and visually stunning experience.
 
-## ✨ Latest Release: v2.0
+## ✨ Latest Release: v2.1
 
-This major release introduces user-configurable reminders, improved splash screen visuals, and official privacy documentation for Play Store compliance.
+This release focuses on improving the search experience and refining the user interface.
 
-### What's New in v2.0
+### What's New in v2.1
+*   **Search Functionality**: Implemented a full-screen search interface to easily find subscriptions.
+*   **UI Polish**: Various UI enhancements and bug fixes.
+
+### Previous Highlights (v2.0)
 *   **Configurable Notification Timing**: Users can now set their preferred time for daily subscription reminders directly from the Settings menu using a Material 3 Time Picker.
 *   **Privacy-First Design**: Notifications have been set to `IMPORTANCE_LOW` to avoid cluttering the status bar while still providing timely reminders.
 *   **Refined Splash Screen**: Fixed icon scaling and clipping issues on the splash screen to ensure the full app icon is displayed beautifully on Android 12+ devices.
@@ -42,13 +46,13 @@ To build the debug APK manually, run:
 ```
 The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Tagging Version v2.0
+### Tagging Version v2.1
 To freeze this state in Git:
 ```bash
 git add .
-git commit -m "chore: release version 2.0"
-git tag -a v2.0 -m "Release version 2.0"
-git push origin v2.0
+git commit -m "chore: release version 2.1"
+git tag -a v2.1 -m "Release version 2.1"
+git push origin v2.1
 ```
 
 ## ⚙️ Setup

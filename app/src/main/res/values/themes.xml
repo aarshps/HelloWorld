@@ -1,6 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.Varisankya" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Unified Background Color -->
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        
         <!-- Make status bar transparent -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <!-- Ensure status bar icons are dark in light mode -->
@@ -8,6 +11,19 @@
         
         <!-- SearchView styling to remove dividers -->
         <item name="searchViewStyle">@style/Widget.App.SearchView</item>
+
+        <!-- Apply unified header style -->
+        <item name="appBarLayoutStyle">@style/Widget.App.AppBarLayout</item>
+        <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+        <item name="colorError">@color/error_color</item>
+    </style>
+
+    <style name="Widget.App.AppBarLayout" parent="Widget.Material3.AppBarLayout">
+        <item name="android:background">?attr/colorSurface</item>
+    </style>
+
+    <style name="Widget.App.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">?attr/colorSurface</item>
     </style>
 
     <style name="Widget.App.SearchView" parent="Widget.Material3.SearchView">
@@ -25,6 +41,11 @@
     <style name="App.ShapeAppearanceOverlay.Rounded" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="App.ShapeAppearanceOverlay.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 
     <!-- Style for rounded text input fields -->

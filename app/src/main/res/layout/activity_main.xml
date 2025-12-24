@@ -18,48 +18,48 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:titleCentered="true">
-
-            <ImageView
-                android:id="@+id/app_logo_image"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="start"
-                android:contentDescription="App Logo"
-                android:src="@mipmap/ic_launcher_round" />
-
-            <TextView
-                style="@style/TextAppearance.Material3.TitleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/app_name" />
+            app:contentInsetEnd="24dp"
+            app:contentInsetStart="24dp"
+            app:titleCentered="false">
 
             <LinearLayout
+                android:id="@+id/search_trigger_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="end"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <ImageButton
-                    android:id="@+id/settings_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:background="?attr/actionBarItemBackground"
-                    android:contentDescription="Settings"
-                    android:src="@drawable/ic_settings"
-                    app:tint="?attr/colorOnSurface" />
-
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/profile_image"
+                <ImageView
+                    android:id="@+id/app_logo_image"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="16dp"
-                    app:shapeAppearanceOverlay="@style/App.ShapeAppearanceOverlay.Rounded"
-                    tools:src="@tools:sample/avatars" />
+                    android:contentDescription="App Logo"
+                    android:src="@mipmap/ic_launcher_round" />
+
+                <TextView
+                    android:id="@+id/app_name_text"
+                    style="@style/TextAppearance.Material3.TitleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/app_name"
+                    android:textColor="?attr/colorOnSurface" />
             </LinearLayout>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/profile_image"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                app:shapeAppearanceOverlay="@style/App.ShapeAppearanceOverlay.Rounded"
+                tools:src="@tools:sample/avatars" />
 
         </com.google.android.material.appbar.MaterialToolbar>
 
@@ -176,44 +176,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="32dp"
         android:text="Add New"
-        app:icon="@drawable/ic_add" />
-
-    <com.google.android.material.search.SearchView
-        android:id="@+id/search_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:hint="Search subscriptions"
-        app:backgroundTint="?attr/colorSurface"
-        app:dividerColor="@android:color/transparent"
-        app:elevation="0dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/search_category_chip_group"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    app:singleSelection="false"
-                    app:chipSpacingHorizontal="8dp" />
-            </HorizontalScrollView>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/search_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="16dp" />
-
-        </LinearLayout>
-    </com.google.android.material.search.SearchView>
+        app:icon="@drawable/ic_add"
+        app:shapeAppearanceOverlay="@style/App.ShapeAppearanceOverlay.Pill" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

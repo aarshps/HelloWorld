@@ -79,23 +79,4 @@ class SelectionBottomSheet(
 
         return view
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        PreferenceHelper.performHaptics(view, HapticFeedbackConstants.CONTEXT_CLICK)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val dialog = dialog as? BottomSheetDialog
-        val behavior = dialog?.behavior
-        behavior?.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    PreferenceHelper.performHaptics(bottomSheet, HapticFeedbackConstants.GESTURE_END)
-                }
-            }
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-        })
-    }
 }

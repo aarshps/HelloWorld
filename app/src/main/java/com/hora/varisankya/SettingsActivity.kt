@@ -106,10 +106,11 @@ class SettingsActivity : AppCompatActivity() {
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
             set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
 
         if (dueDate.before(currentDate)) {
-            dueDate.add(Calendar.HOUR_OF_DAY, 24)
+            dueDate.add(Calendar.DAY_OF_YEAR, 1)
         }
 
         val initialDelay = dueDate.timeInMillis - currentDate.timeInMillis
@@ -120,6 +121,7 @@ class SettingsActivity : AppCompatActivity() {
         .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
         .build()
 
+        // Use UPDATE here to force the alignment to the newly selected time
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "subscription_notifications",
             ExistingPeriodicWorkPolicy.UPDATE,

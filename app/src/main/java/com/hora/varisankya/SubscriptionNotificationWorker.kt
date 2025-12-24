@@ -31,9 +31,11 @@ class SubscriptionNotificationWorker(
         val firestore = FirebaseFirestore.getInstance()
 
         try {
+            // Fetch only active subscriptions to avoid unnecessary processing
             val snapshots = firestore.collection("users")
                 .document(userId)
                 .collection("subscriptions")
+                .whereEqualTo("active", true)
                 .get()
                 .await()
 
@@ -43,12 +45,6 @@ class SubscriptionNotificationWorker(
             today.set(Calendar.MINUTE, 0)
             today.set(Calendar.SECOND, 0)
             today.set(Calendar.MILLISECOND, 0)
-
-            val sevenDaysLater = Calendar.getInstance()
-            sevenDaysLater.time = today.time
-            sevenDaysLater.add(Calendar.DAY_OF_YEAR, 7)
-
-            var notificationCount = 0
 
             subscriptions.forEach { sub ->
                 sub.dueDate?.let { dueDate ->
@@ -65,13 +61,8 @@ class SubscriptionNotificationWorker(
                     // Notify if due today or in the next 7 days
                     if (daysLeft in 0..7) {
                         sendNotification(sub, daysLeft)
-                        notificationCount++
                     }
                 }
-            }
-
-            if (notificationCount > 0) {
-                sendSummaryNotification(notificationCount)
             }
 
             return Result.success()
@@ -82,8 +73,9 @@ class SubscriptionNotificationWorker(
     }
 
     private fun sendNotification(subscription: Subscription, daysLeft: Int) {
+        val context = applicationContext
         if (ActivityCompat.checkSelfPermission(
-                applicationContext,
+                context,
                 Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -92,89 +84,66 @@ class SubscriptionNotificationWorker(
 
         createNotificationChannel()
 
-        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+        val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
+        
+        // Use a unique but stable ID for the Notification and PendingIntent based on subscription ID
+        val notifId = subscription.id?.hashCode() ?: return
+        
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            applicationContext, 
-            subscription.id.hashCode(), 
+            context, 
+            notifId, 
             intent, 
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val title = when (daysLeft) {
-            0 -> "Subscription Due Today!"
-            1 -> "Upcoming: Tomorrow"
-            else -> "Upcoming Due"
+            0 -> "Due Today"
+            1 -> "Due Tomorrow"
+            else -> "Due in $daysLeft days"
         }
 
-        val message = when (daysLeft) {
-            0 -> "Your ${subscription.name} payment of ${subscription.currency} ${subscription.cost} is due today."
-            1 -> "Don't forget: ${subscription.name} is due tomorrow."
-            else -> "${subscription.name} is due in $daysLeft days."
-        }
+        val message = "${subscription.name}: ${subscription.currency} ${subscription.cost}"
 
-        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Discrete foreground icon
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_LOW) // Lower priority as requested
+            .setPriority(NotificationCompat.PRIORITY_LOW) // Keeps it out of the status bar
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setGroup(GROUP_KEY_SUBSCRIPTIONS)
+            // No summary notification here to prevent perceived duplicates in the drawer
 
-        with(NotificationManagerCompat.from(applicationContext)) {
-            notify(subscription.id.hashCode(), builder.build())
-        }
-    }
-
-    private fun sendSummaryNotification(count: Int) {
-        if (ActivityCompat.checkSelfPermission(
-                applicationContext,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        val summaryNotification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Subscription Reminders")
-            .setContentText("You have $count payments due soon.")
-            .setStyle(NotificationCompat.InboxStyle()
-                .setSummaryText("$count subscriptions due"))
-            .setPriority(NotificationCompat.PRIORITY_LOW) // Lower priority as requested
-            .setGroup(GROUP_KEY_SUBSCRIPTIONS)
-            .setGroupSummary(true)
-            .setAutoCancel(true)
-            .build()
-
-        with(NotificationManagerCompat.from(applicationContext)) {
-            notify(SUMMARY_ID, summaryNotification)
+        with(NotificationManagerCompat.from(context)) {
+            // notify with the same ID will overwrite any existing notification for this subscription
+            notify(notifId, builder.build())
         }
     }
 
     private fun createNotificationChannel() {
+        val notificationManager: NotificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Clean up legacy channels to prevent overlapping notifications or conflicting importance settings
+        notificationManager.deleteNotificationChannel("subscription_reminders")
+        notificationManager.deleteNotificationChannel("subscription_reminders_v1")
+        
         val name = "Subscription Reminders"
         val descriptionText = "Daily reminders for upcoming subscriptions"
-        val importance = NotificationManager.IMPORTANCE_LOW // Lower importance to hide from status bar
+        val importance = NotificationManager.IMPORTANCE_LOW // Strict adherence to M3E for non-critical alerts
         val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
             description = descriptionText
             enableLights(false)
             enableVibration(false)
+            setShowBadge(false)
         }
-        val notificationManager: NotificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
-        // Optionally delete the old channel if it exists with high importance
-        // notificationManager.deleteNotificationChannel("subscription_reminders")
-        
         notificationManager.createNotificationChannel(channel)
     }
 
     companion object {
-        const val CHANNEL_ID = "subscription_reminders_v1" // Changed to ensure importance change takes effect
-        const val GROUP_KEY_SUBSCRIPTIONS = "com.hora.varisankya.SUBSCRIPTION_UPDATES"
-        const val SUMMARY_ID = 0
+        const val CHANNEL_ID = "subscription_reminders_v2" // Versioned channel for clean state
+        const val GROUP_KEY_SUBSCRIPTIONS = "com.hora.varisankya.SUBSCRIPTIONS"
     }
 }

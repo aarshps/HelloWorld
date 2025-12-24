@@ -6,14 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="24dp">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="28dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clipChildren="false"
-        android:clipToPadding="false"
         android:paddingStart="24dp"
         android:paddingTop="16dp"
         android:paddingEnd="16dp"
@@ -49,49 +47,29 @@
             app:layout_constraintTop_toBottomOf="@+id/subscription_name"
             tools:text="Due Dec 25 • Monthly" />
 
+        <!-- M3 Expressive Pill with subtle filling indicator -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/unified_status_pill"
-            android:layout_width="100dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="2dp"
             app:cardBackgroundColor="?attr/colorSecondaryContainer"
             app:cardCornerRadius="16dp"
-            app:cardElevation="6dp"
+            app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:strokeWidth="0dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/subscription_days_left"
+                style="@style/TextAppearance.Material3.LabelLarge"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:paddingBottom="10dp">
-
-                <TextView
-                    android:id="@+id/subscription_days_left"
-                    style="@style/TextAppearance.Material3.LabelLarge"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="10dp"
-                    android:textColor="?attr/colorOnSecondaryContainer"
-                    tools:text="5 Days" />
-
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/subscription_progress"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    app:indicatorColor="?attr/colorSecondary"
-                    app:trackColor="?attr/colorSurfaceVariant"
-                    app:trackCornerRadius="6dp"
-                    app:trackThickness="12dp"
-                    android:progress="60" />
-
-            </LinearLayout>
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                tools:text="5 Days" />
 
         </com.google.android.material.card.MaterialCardView>
 
