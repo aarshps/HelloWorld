@@ -7,43 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:663138385072:android:b6f3dad122bd1a3e6e0f75",
-        "android_client_info": {
-          "package_name": "com.hora.helloworld"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "663138385072-dls8hd0j3b2mu2bvtrcjvua372nfaf1k.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.hora.helloworld",
-            "certificate_hash": "2b2a3169ef99488ef78ecb66a2f3aee5101bd92a"
-          }
-        },
-        {
-          "client_id": "663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB6DeDde9f4Gz3JYdACY0xFPn6paeY3LHY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:663138385072:android:dfcdd7f25c0171c56e0f75",
         "android_client_info": {
           "package_name": "com.hora.varisankya"
@@ -51,11 +14,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "663138385072-2farc8mo097t0plbbdn20jfec1gitpls.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hora.varisankya",
+            "certificate_hash": "4e2eb5c5911b5a2de2a696f78ee3f081d9243b8f"
+          }
+        },
+        {
           "client_id": "663138385072-c3n64ci3vcpvn4qqo7dh9f6cdqtq6351.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.hora.varisankya",
             "certificate_hash": "5cb5895b7729a1d10b90cf0122727d2ef345b6f9"
+          }
+        },
+        {
+          "client_id": "663138385072-n04ok5g7thgdjspet5qoho56vu70vjqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hora.varisankya",
+            "certificate_hash": "d0fb3d47fa0aade1b062332864ab6d3837e1a00c"
           }
         },
         {

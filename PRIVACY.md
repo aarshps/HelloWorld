@@ -1,6 +1,6 @@
 # Privacy Policy for Varisankya
 
-**Last Updated: October 23, 2023**
+**Last Updated: December 24, 2025**
 
 Varisankya ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and disclose information when you use our mobile application (the "App").
 
@@ -12,6 +12,9 @@ When you sign in using Google Login, we collect your name, email address, and pr
 ### b. Subscription Data
 The App allows you to track your subscriptions. We store the names, costs, currencies, categories, and due dates of the subscriptions you manually enter into the App.
 
+### c. Usage Data
+We may also collect information about how the App is accessed and used ("Usage Data"). This Usage Data may include information such as your device's Internet Protocol address (e.g. IP address), device name, operating system version, the configuration of the app when utilizing our Service, the time and date of your use of the Service, and other statistics.
+
 ## 2. How We Use Your Information
 
 We use the collected information to:
@@ -19,6 +22,8 @@ We use the collected information to:
 - Authenticate your identity via Google.
 - Sync your subscription data across devices associated with your Google account.
 - Provide notification reminders for your upcoming payments.
+- Monitor the usage of our App.
+- Detect, prevent and address technical issues.
 
 ## 3. Data Storage and Security
 
@@ -30,6 +35,7 @@ We use the following third-party services:
 - **Google Play Services:** For app distribution and core functionality.
 - **Firebase Authentication:** To handle user sign-in.
 - **Cloud Firestore:** To store your subscription data.
+- **Firebase Analytics:** To collect anonymous usage data to improve the app.
 
 These services may collect information used to identify you. Please refer to [Google's Privacy Policy](https://policies.google.com/privacy) for more details.
 
