@@ -41,7 +41,7 @@ These services may collect information used to identify you. Please refer to [Go
 
 ## 5. Data Deletion
 
-You can delete your data at any time by removing individual subscriptions within the App. If you wish to delete your entire account and all associated data, please contact us at [support@hora.com].
+You can delete your data at any time by removing individual subscriptions within the App. If you wish to delete your entire account and all associated data, please contact us at aarshps@gmail.com.
 
 ## 6. Changes to This Privacy Policy
 
@@ -49,4 +49,4 @@ We may update our Privacy Policy from time to time. We will notify you of any ch
 
 ## 7. Contact Us
 
-If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at [support@hora.com].
+If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at aarshps@gmail.com.
