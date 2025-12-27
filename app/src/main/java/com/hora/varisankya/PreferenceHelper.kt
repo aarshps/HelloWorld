@@ -11,6 +11,7 @@ object PreferenceHelper {
     private const val KEY_HAPTICS_ENABLED = "haptics_enabled"
     private const val KEY_NOTIF_HOUR = "notification_hour"
     private const val KEY_NOTIF_MINUTE = "notification_minute"
+    private const val KEY_USE_GOOGLE_FONT = "use_google_font"
 
     fun recordUsage(context: Context, preferenceKey: String, value: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -36,6 +37,16 @@ object PreferenceHelper {
     fun setHapticsEnabled(context: Context, enabled: Boolean) {
         val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
         prefs.edit().putBoolean(KEY_HAPTICS_ENABLED, enabled).apply()
+    }
+
+    fun isGoogleFontEnabled(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_USE_GOOGLE_FONT, true)
+    }
+
+    fun setGoogleFontEnabled(context: Context, enabled: Boolean) {
+        val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_USE_GOOGLE_FONT, enabled).apply()
     }
 
     fun getNotificationHour(context: Context): Int {

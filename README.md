@@ -2,11 +2,17 @@
 
 Varisankya is a modern, high-performance Android application designed to help users track and manage their recurring subscriptions with ease. Built with a focus on the **Material 3 Expressive (M3E)** design language, it offers a tactile, personalized, and visually stunning experience.
 
-## ✨ Latest Release: v2.3
+## ✨ Latest Release: v2.4
 
-This release introduces critical UI fixes and enhancements to the subscription management flow.
+This release introduces a major visual overhaul to the typography system and enhanced user customization.
 
-### What's New in v2.3
+### What's New in v2.4
+*   **Typography Overhaul**: Adopted **Google Sans Flex** with maximum roundness across the entire application for a softer, more modern, and approachable aesthetic.
+*   **Font Customization**: Added a new **Typography** setting, allowing users to switch between the custom rounded font and the system default font seamlessly.
+*   **Dynamic Theming Engine**: Improved the base activity architecture to support instant theme switching across all screens without restarting the app.
+*   **Global Consistency**: Unified typography in all surfaces, including Material components, headers, and body text, while preserving Dynamic Colors (Material You).
+
+### Previous Highlights (v2.3)
 *   **UI Stability**: Fixed visibility issues with the "Add Subscription" floating button to ensure seamless access to creation tools.
 *   **Refined UX**: Improved transitions and view states when switching between logged-in and logged-out modes.
 *   **Performance**: Optimized layout rendering for smoother scrolling experiences.
@@ -53,13 +59,13 @@ To build the debug APK manually, run:
 ```
 The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Tagging Version v2.3
+### Tagging Version v2.4
 To freeze this state in Git:
 ```bash
 git add .
-git commit -m "chore: release version 2.3"
-git tag -a v2.3 -m "Release version 2.3"
-git push origin v2.3
+git commit -m "chore: release version 2.4"
+git tag -a v2.4 -m "Release version 2.4"
+git push origin v2.4
 ```
 
 ## ⚙️ Setup

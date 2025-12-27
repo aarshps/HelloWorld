@@ -7,7 +7,6 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -21,7 +20,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity() {
 
     private lateinit var auth: FirebaseAuth
 
@@ -34,6 +33,7 @@ class SettingsActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         setupThemeToggle()
+        setupFontToggle()
         setupNotificationTimeSetting()
         setupHapticsToggle()
         setupPrivacyPolicy()
@@ -55,6 +55,34 @@ class SettingsActivity : AppCompatActivity() {
                     R.id.theme_light -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                     R.id.theme_dark -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                     R.id.theme_device -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                }
+            }
+        }
+    }
+
+    private fun setupFontToggle() {
+        val fontToggleGroup = findViewById<ChipGroup>(R.id.font_toggle_group)
+        
+        if (PreferenceHelper.isGoogleFontEnabled(this)) {
+            fontToggleGroup.check(R.id.font_google)
+        } else {
+            fontToggleGroup.check(R.id.font_system)
+        }
+
+        fontToggleGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                PreferenceHelper.performHaptics(group, HapticFeedbackConstants.KEYBOARD_TAP)
+                val enableGoogleFont = checkedIds[0] == R.id.font_google
+                
+                // Only recreate if preference actually changed
+                if (enableGoogleFont != PreferenceHelper.isGoogleFontEnabled(this)) {
+                    PreferenceHelper.setGoogleFontEnabled(this, enableGoogleFont)
+                    
+                    // Restart Activity to apply theme
+                    val intent = intent
+                    finish()
+                    startActivity(intent)
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                 }
             }
         }
