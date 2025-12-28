@@ -17,7 +17,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Settings" />
+            app:title="Settings"
+            app:titleTextAppearance="?attr/textAppearanceTitleLarge" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -30,19 +31,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp">
 
             <TextView
                 style="@style/TextAppearance.Material3.TitleMedium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Appearance" />
+                android:layout_marginStart="8dp"
+                android:text="Appearance"
+                android:textColor="?attr/colorPrimary" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/theme_toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:paddingHorizontal="8dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
@@ -78,13 +83,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Typography" />
+                android:layout_marginStart="8dp"
+                android:text="Typography"
+                android:textColor="?attr/colorPrimary" />
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/font_toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:paddingHorizontal="8dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
@@ -111,32 +119,59 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Notifications" />
+                android:layout_marginStart="8dp"
+                android:text="Notifications"
+                android:textColor="?attr/colorPrimary" />
 
             <LinearLayout
                 android:id="@+id/notification_time_setting"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackground"
-                android:paddingVertical="8dp">
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="8dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Reminder Time"
-                    style="@style/TextAppearance.Material3.BodyLarge" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Daily Reminder"
+                        style="@style/TextAppearance.Material3.BodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Set the time you want to be notified"
+                        style="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/notification_time_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="08:00 AM"
-                    style="@style/TextAppearance.Material3.BodyMedium"
-                    android:textColor="?attr/colorSecondary" />
+                    style="@style/TextAppearance.Material3.TitleSmall"
+                    android:textColor="?attr/colorPrimary"
+                    android:layout_marginEnd="8dp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="Edit" />
             </LinearLayout>
 
             <TextView
@@ -144,39 +179,86 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="General" />
+                android:layout_marginStart="8dp"
+                android:text="Haptics"
+                android:textColor="?attr/colorPrimary" />
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/haptics_switch"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/haptics_toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Haptic Feedback"
-                style="@style/TextAppearance.Material3.BodyLarge" />
+                android:paddingHorizontal="8dp"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/haptics_on"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="On"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/haptics_off"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Off"
+                    app:checkedIconVisible="false" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <TextView
+                style="@style/TextAppearance.Material3.TitleMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginStart="8dp"
+                android:text="Legal"
+                android:textColor="?attr/colorPrimary" />
 
             <LinearLayout
                 android:id="@+id/privacy_policy_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:clickable="true"
                 android:focusable="true"
                 android:background="?attr/selectableItemBackground"
-                android:paddingVertical="8dp">
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="8dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Privacy Policy"
-                    style="@style/TextAppearance.Material3.BodyLarge" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View how we handle your data"
-                    style="@style/TextAppearance.Material3.BodyMedium"
-                    android:textColor="?attr/colorSecondary" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Privacy Policy"
+                        style="@style/TextAppearance.Material3.BodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Read about our data practices"
+                        style="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_open_in_new"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="Open" />
             </LinearLayout>
 
         </LinearLayout>

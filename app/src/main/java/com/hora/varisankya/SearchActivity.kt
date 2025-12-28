@@ -22,6 +22,7 @@ class SearchActivity : BaseActivity() {
     private lateinit var searchEditText: EditText
     private lateinit var categoryChipGroup: ChipGroup
     private lateinit var searchRecyclerView: RecyclerView
+    private lateinit var adapter: SubscriptionAdapter
     
     private var allSubscriptions: List<Subscription> = emptyList()
 
@@ -41,6 +42,15 @@ class SearchActivity : BaseActivity() {
         searchRecyclerView = findViewById(R.id.search_recycler_view)
 
         searchRecyclerView.layoutManager = LinearLayoutManager(this)
+        
+        // Initialize adapter with empty list
+        adapter = SubscriptionAdapter(emptyList()) { subscription ->
+            val addSubscriptionBottomSheet = AddSubscriptionBottomSheet(subscription) {
+                loadAllSubscriptions() // Reload if changed
+            }
+            addSubscriptionBottomSheet.show(supportFragmentManager, "AddSubscriptionBottomSheet")
+        }
+        searchRecyclerView.adapter = adapter
         
         setupCategories()
         loadAllSubscriptions()
@@ -106,12 +116,8 @@ class SearchActivity : BaseActivity() {
                 .thenBy { it.dueDate }
         )
         
-        searchRecyclerView.adapter = SubscriptionAdapter(sortedFiltered) { subscription ->
-            val addSubscriptionBottomSheet = AddSubscriptionBottomSheet(subscription) {
-                loadAllSubscriptions() // Reload if changed
-            }
-            addSubscriptionBottomSheet.show(supportFragmentManager, "AddSubscriptionBottomSheet")
-        }
+        // Update existing adapter instead of creating a new one
+        adapter.updateData(sortedFiltered)
     }
 
     private fun getSelectedCategories(): List<String> {

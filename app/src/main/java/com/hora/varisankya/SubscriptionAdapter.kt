@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
@@ -18,7 +18,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class SubscriptionAdapter(
-    private val subscriptions: List<Subscription>,
+    private var subscriptions: List<Subscription>,
     private val onSubscriptionClicked: (Subscription) -> Unit
 ) : RecyclerView.Adapter<SubscriptionAdapter.ItemViewHolder>() {
 
@@ -128,4 +128,24 @@ class SubscriptionAdapter(
     }
 
     override fun getItemCount() = subscriptions.size
+
+    fun updateData(newSubscriptions: List<Subscription>) {
+        val diffCallback = object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = subscriptions.size
+            override fun getNewListSize(): Int = newSubscriptions.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                // Use document ID for identity comparison
+                return subscriptions[oldItemPosition].id == newSubscriptions[newItemPosition].id
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return subscriptions[oldItemPosition] == newSubscriptions[newItemPosition]
+            }
+        }
+
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        this.subscriptions = newSubscriptions
+        diffResult.dispatchUpdatesTo(this)
+    }
 }

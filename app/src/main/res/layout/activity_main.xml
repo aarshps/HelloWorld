@@ -42,11 +42,11 @@
 
                 <TextView
                     android:id="@+id/app_name_text"
-                    style="@style/TextAppearance.Material3.TitleLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:text="@string/app_name"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurface" />
             </LinearLayout>
 
@@ -103,21 +103,21 @@
                     app:tint="?attr/colorOutline" />
 
                 <TextView
-                    style="@style/TextAppearance.Material3.HeadlineSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="No Subscriptions Yet"
                     android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
-                    style="@style/TextAppearance.Material3.BodyLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Add your first subscription to start tracking your expenses."
                     android:textAlignment="center"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
@@ -142,20 +142,20 @@
             android:src="@mipmap/ic_launcher_round" />
 
         <TextView
-            style="@style/TextAppearance.Material3.HeadlineMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome to Varisankya"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium" />
 
         <TextView
-            style="@style/TextAppearance.Material3.BodyLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="32dp"
             android:text="The simple way to track and manage all your recurring subscriptions in one place."
             android:textAlignment="center"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <Button

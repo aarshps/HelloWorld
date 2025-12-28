@@ -12,7 +12,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.chip.ChipGroup
-import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import com.google.firebase.auth.FirebaseAuth
@@ -158,13 +157,19 @@ class SettingsActivity : BaseActivity() {
     }
 
     private fun setupHapticsToggle() {
-        val hapticsSwitch = findViewById<MaterialSwitch>(R.id.haptics_switch)
-        hapticsSwitch.isChecked = PreferenceHelper.isHapticsEnabled(this)
+        val hapticsToggleGroup = findViewById<ChipGroup>(R.id.haptics_toggle_group)
         
-        hapticsSwitch.setOnCheckedChangeListener { _, isChecked ->
-            PreferenceHelper.setHapticsEnabled(this, isChecked)
-            if (isChecked) {
-                hapticsSwitch.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (PreferenceHelper.isHapticsEnabled(this)) {
+            hapticsToggleGroup.check(R.id.haptics_on)
+        } else {
+            hapticsToggleGroup.check(R.id.haptics_off)
+        }
+        
+        hapticsToggleGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                PreferenceHelper.performHaptics(group, HapticFeedbackConstants.KEYBOARD_TAP)
+                val enableHaptics = checkedIds[0] == R.id.haptics_on
+                PreferenceHelper.setHapticsEnabled(this, enableHaptics)
             }
         }
     }

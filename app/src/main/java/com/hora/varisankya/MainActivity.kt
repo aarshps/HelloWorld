@@ -1,7 +1,6 @@
 package com.hora.varisankya
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,7 +9,6 @@ import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -60,6 +58,7 @@ class MainActivity : BaseActivity() {
     private lateinit var fabAddSubscription: ExtendedFloatingActionButton
     private lateinit var emptyStateContainer: LinearLayout
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var adapter: SubscriptionAdapter
 
     private val WEB_CLIENT_ID = "663138385072-bke7f5oflsl2cg0e5maks0ef3n6o113u.apps.googleusercontent.com"
 
@@ -88,12 +87,19 @@ class MainActivity : BaseActivity() {
         auth = FirebaseAuth.getInstance()
         credentialManager = CredentialManager.create(this)
         firestore = FirebaseFirestore.getInstance()
+        
+        // Initialize RecyclerView Adapter once
+        adapter = SubscriptionAdapter(emptyList()) { subscription ->
+            showAddSubscriptionSheet(subscription)
+        }
+        subscriptionsRecyclerView.layoutManager = LinearLayoutManager(this)
+        subscriptionsRecyclerView.adapter = adapter
 
         // Check current user and update UI
         updateUI(auth.currentUser != null)
         if (auth.currentUser != null) {
-            setupRecyclerView()
             setupNotifications()
+            loadSubscriptions() // Start loading data
         } else {
             isDataLoaded = true
         }
@@ -206,10 +212,7 @@ class MainActivity : BaseActivity() {
         )
     }
 
-    private fun setupRecyclerView() {
-        subscriptionsRecyclerView.layoutManager = LinearLayoutManager(this)
-        loadSubscriptions()
-    }
+    // Removed setupRecyclerView as we do it in onCreate now
 
     private fun loadSubscriptions() {
         auth.currentUser?.uid?.let { userId ->
@@ -234,9 +237,8 @@ class MainActivity : BaseActivity() {
                     } else {
                         emptyStateContainer.visibility = View.GONE
                         subscriptionsRecyclerView.visibility = View.VISIBLE
-                        subscriptionsRecyclerView.adapter = SubscriptionAdapter(sortedSubscriptions) { subscription ->
-                            showAddSubscriptionSheet(subscription)
-                        }
+                        // Update existing adapter
+                        adapter.updateData(sortedSubscriptions)
                     }
                 }
         } ?: run {
@@ -285,8 +287,8 @@ class MainActivity : BaseActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     updateUI(true)
-                    setupRecyclerView()
                     setupNotifications()
+                    loadSubscriptions() // Reload data for new user
                 } else {
                     updateUI(false)
                     Toast.makeText(this, "Firebase Auth Failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
