@@ -45,6 +45,9 @@ class SubscriptionNotificationWorker(
             today.set(Calendar.MINUTE, 0)
             today.set(Calendar.SECOND, 0)
             today.set(Calendar.MILLISECOND, 0)
+            
+            // Get user preference for notification window
+            val notificationWindow = PreferenceHelper.getNotificationDays(applicationContext)
 
             subscriptions.forEach { sub ->
                 sub.dueDate?.let { dueDate ->
@@ -58,8 +61,8 @@ class SubscriptionNotificationWorker(
                     val diff = dueCal.timeInMillis - today.timeInMillis
                     val daysLeft = TimeUnit.MILLISECONDS.toDays(diff).toInt()
 
-                    // Notify if due today or in the next 7 days
-                    if (daysLeft in 0..7) {
+                    // Notify if due today or in the next N days (user preference)
+                    if (daysLeft in 0..notificationWindow) {
                         sendNotification(sub, daysLeft)
                     }
                 }

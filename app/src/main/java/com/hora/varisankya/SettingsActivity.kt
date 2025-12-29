@@ -5,13 +5,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.slider.Slider
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import com.google.firebase.auth.FirebaseAuth
@@ -28,15 +28,29 @@ class SettingsActivity : BaseActivity() {
         setContentView(R.layout.activity_settings)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(true)
 
         auth = FirebaseAuth.getInstance()
 
+        setupLogoutButton()
         setupThemeToggle()
         setupFontToggle()
         setupNotificationTimeSetting()
+        setupNotificationDaysSetting()
         setupHapticsToggle()
         setupPrivacyPolicy()
-        setupLogoutButton()
+    }
+
+    private fun setupLogoutButton() {
+        val logoutButton = findViewById<View>(R.id.logout_button)
+        logoutButton.setOnClickListener {
+            PreferenceHelper.performHaptics(window.decorView, HapticFeedbackConstants.CONFIRM)
+            auth.signOut()
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun setupThemeToggle() {
@@ -109,11 +123,40 @@ class SettingsActivity : BaseActivity() {
             picker.addOnPositiveButtonClickListener {
                 PreferenceHelper.setNotificationTime(this, picker.hour, picker.minute)
                 updateTimeText(timeTextView, picker.hour, picker.minute)
-                rescheduleNotifications(picker.hour, picker.minute)
+                rescheduleNotifications()
             }
 
             picker.show(supportFragmentManager, "NOTIFICATION_TIME_PICKER")
         }
+    }
+
+    private fun setupNotificationDaysSetting() {
+        val slider = findViewById<Slider>(R.id.notification_days_slider)
+        val label = findViewById<TextView>(R.id.notification_days_label)
+
+        val currentDays = PreferenceHelper.getNotificationDays(this)
+        // Ensure slider value is within bounds (0-10)
+        slider.value = currentDays.toFloat().coerceIn(0f, 10f)
+        label.text = "$currentDays days before"
+
+        slider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                PreferenceHelper.performHaptics(slider, HapticFeedbackConstants.CLOCK_TICK)
+                val days = value.toInt()
+                label.text = "$days days before"
+            }
+        }
+
+        slider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // No-op
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                val days = slider.value.toInt()
+                PreferenceHelper.setNotificationDays(this@SettingsActivity, days)
+            }
+        })
     }
 
     private fun updateTimeText(textView: TextView, hour: Int, minute: Int) {
@@ -127,11 +170,14 @@ class SettingsActivity : BaseActivity() {
         textView.text = String.format(Locale.getDefault(), "%02d:%02d %s", hour12, minute, amPm)
     }
 
-    private fun rescheduleNotifications(hour: Int, minute: Int) {
+    private fun rescheduleNotifications(hour: Int? = null, minute: Int? = null) {
+        val targetHour = hour ?: PreferenceHelper.getNotificationHour(this)
+        val targetMinute = minute ?: PreferenceHelper.getNotificationMinute(this)
+
         val currentDate = Calendar.getInstance()
         val dueDate = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
+            set(Calendar.HOUR_OF_DAY, targetHour)
+            set(Calendar.MINUTE, targetMinute)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
@@ -148,7 +194,6 @@ class SettingsActivity : BaseActivity() {
         .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
         .build()
 
-        // Use UPDATE here to force the alignment to the newly selected time
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "subscription_notifications",
             ExistingPeriodicWorkPolicy.UPDATE,
@@ -178,26 +223,9 @@ class SettingsActivity : BaseActivity() {
         val privacyPolicyLayout = findViewById<View>(R.id.privacy_policy_layout)
         privacyPolicyLayout.setOnClickListener {
             PreferenceHelper.performHaptics(it, HapticFeedbackConstants.CLOCK_TICK)
-            // Updated to the URL provided by the user
             val policyUrl = "https://github.com/aarshps/varisankya-android/blob/master/PRIVACY.md"
             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(policyUrl))
             startActivity(browserIntent)
-        }
-    }
-
-    private fun setupLogoutButton() {
-        val logoutButton = findViewById<Button>(R.id.logout_button)
-        logoutButton.setOnClickListener { view ->
-            PreferenceHelper.performHaptics(view, HapticFeedbackConstants.CONFIRM)
-
-            // Sign out of Firebase
-            auth.signOut()
-
-            // Return to the main activity, which will now show the login screen
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
         }
     }
 

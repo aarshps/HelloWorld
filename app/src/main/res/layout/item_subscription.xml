@@ -26,7 +26,6 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:textColor="?attr/colorOnSurface"
-            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/subscription_details"
             app:layout_constraintEnd_toStartOf="@+id/unified_status_pill"
             app:layout_constraintStart_toStartOf="parent"
@@ -48,10 +47,10 @@
             app:layout_constraintTop_toBottomOf="@+id/subscription_name"
             tools:text="Due Dec 25 • Monthly" />
 
-        <!-- Status Text Pill (Fattier and Rounder) -->
+        <!-- Status Text Pill (Fixed Width for Uniformity) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/unified_status_pill"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
             app:cardCornerRadius="100dp"
@@ -66,10 +65,10 @@
             <TextView
                 android:id="@+id/subscription_days_left"
                 style="@style/TextAppearance.Material3.LabelLarge"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingHorizontal="16dp"
+                android:paddingHorizontal="4dp"
                 android:paddingVertical="10dp"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="13sp"

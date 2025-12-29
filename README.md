@@ -43,15 +43,6 @@ To build the debug APK manually, run:
 ```
 The APK will be generated at: `app/build/outputs/apk/debug/app-debug.apk`
 
-### Current Version: v2.6
-To freeze this state in Git:
-```bash
-git add .
-git commit -m "chore: release version 2.6"
-git tag -a v2.6 -m "Release version 2.6"
-git push origin v2.6
-```
-
 ## ⚙️ Setup
 
 1.  Place your `google-services.json` in the `app/` folder.

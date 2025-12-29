@@ -98,17 +98,17 @@ class SubscriptionAdapter(
 
                 holder.daysLeftTextView.text = text
                 holder.pillContainer.visibility = View.VISIBLE
-                holder.progressView.visibility = View.VISIBLE // Always visible to show track
                 
+                // Fetch user preference for notification window
+                val notificationWindow = PreferenceHelper.getNotificationDays(context)
+
                 // M3E Dynamic Styling & Progress Logic
-                // Progress starts when notifications start (7 days out)
-                val notificationWindow = 7 
                 val progress = when {
                      daysLeft < 0 -> 100 // Overdue is fully urgent
-                     daysLeft > notificationWindow -> 0 // More than 7 days out = 0% progress (but track visible)
+                     daysLeft > notificationWindow -> 0 // Outside window = 0% progress
                      else -> {
-                         // Scale from 0% at 7 days to 100% at 0 days
-                         // daysLeft is between 0 and 7 here
+                         // Scale from 0% at N days to 100% at 0 days
+                         // daysLeft is between 0 and N here
                          ((notificationWindow - daysLeft).toFloat() / notificationWindow * 100).toInt()
                      }
                 }
@@ -120,16 +120,8 @@ class SubscriptionAdapter(
                 animator.start()
 
                 // Resolve Colors
-                val error = MaterialColors.getColor(context, android.R.attr.colorError, Color.RED)
-                val tertiary = MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiary, Color.CYAN)
                 val secondary = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSecondary, Color.LTGRAY)
                 val outlineVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, Color.LTGRAY)
-                
-                val errorContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorErrorContainer, Color.RED)
-                val onErrorContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnErrorContainer, Color.WHITE)
-                
-                val tertiaryContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiaryContainer, Color.CYAN)
-                val onTertiaryContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnTertiaryContainer, Color.BLACK)
                 
                 val secondaryContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSecondaryContainer, Color.LTGRAY)
                 val onSecondaryContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSecondaryContainer, Color.BLACK)
@@ -137,53 +129,31 @@ class SubscriptionAdapter(
                 val surfaceContainerHigh = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurfaceContainerHigh, Color.LTGRAY)
                 val onSurface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
 
-                // Track Color: Always OutlineVariant (or SurfaceVariant) for distinct empty state
+                // Track Color: Always OutlineVariant
                 holder.progressView.pillBackgroundColor = outlineVariant
 
-                // Fill Color & Text Color based on Urgency
-                when {
-                    daysLeft < 0 -> {
-                        // Overdue: Error Container Style
-                        holder.pillContainer.setCardBackgroundColor(errorContainer)
-                        holder.pillContainer.strokeColor = error // Border matches key color
-                        holder.daysLeftTextView.setTextColor(onErrorContainer)
-                        
-                        // Progress Fill: Error
-                        holder.progressView.progressColor = error
-                    }
-                    daysLeft <= 3 -> {
-                        // Very close: Tertiary Container Style
-                        holder.pillContainer.setCardBackgroundColor(tertiaryContainer)
-                        holder.pillContainer.strokeColor = tertiary // Border matches key color
-                        holder.daysLeftTextView.setTextColor(onTertiaryContainer)
-                        
-                        // Progress Fill: Tertiary
-                        holder.progressView.progressColor = tertiary
-                    }
-                    daysLeft <= 7 -> {
-                         // Close: Secondary Container Style
-                        holder.pillContainer.setCardBackgroundColor(secondaryContainer)
-                        holder.pillContainer.strokeColor = secondary // Border matches key color
-                        holder.daysLeftTextView.setTextColor(onSecondaryContainer)
-                        
-                        // Progress Fill: Secondary
-                        holder.progressView.progressColor = secondary
-                    }
-                    else -> {
-                        // Far away: Neutral Style
-                        holder.pillContainer.setCardBackgroundColor(surfaceContainerHigh)
-                        holder.pillContainer.strokeColor = outlineVariant // Border blends with neutral style
-                        holder.daysLeftTextView.setTextColor(onSurface)
-                        
-                        // Progress Fill: Secondary (Invisible since progress is 0, but logical fallback)
-                        holder.progressView.progressColor = secondary
-                        // Hide track if progress is 0 for cleaner look?
-                        // User requested "simple bar", seeing an empty track might be good context.
-                        // But wait, if progress is 0, user said "Also when progress bar is empty as well, users should be able to understand the progress bar is empty"
-                        // This implies the track SHOULD be visible.
-                        // So I will NOT hide it.
-                        holder.progressView.visibility = View.VISIBLE
-                    }
+                // SIMPLIFIED STYLING (2 Styles Only)
+                // Style 1: Notification Triggered (<= notificationWindow) -> Active/Secondary Style
+                // Style 2: Notification Not Triggered (> notificationWindow) -> Neutral Style
+                
+                if (daysLeft <= notificationWindow) {
+                    // TRIGGERED STATE (Active)
+                    // Uses Secondary Container (Gray/Blue) which user said was "fine".
+                    holder.pillContainer.setCardBackgroundColor(secondaryContainer)
+                    holder.pillContainer.strokeColor = secondary
+                    holder.daysLeftTextView.setTextColor(onSecondaryContainer)
+                    
+                    holder.progressView.progressColor = secondary
+                    holder.progressView.visibility = View.VISIBLE
+                } else {
+                    // NOT TRIGGERED STATE (Neutral)
+                    holder.pillContainer.setCardBackgroundColor(surfaceContainerHigh)
+                    holder.pillContainer.strokeColor = outlineVariant
+                    holder.daysLeftTextView.setTextColor(onSurface)
+                    
+                    holder.progressView.progressColor = secondary
+                    // Keep visible as per "users should be able to understand the progress bar is empty"
+                    holder.progressView.visibility = View.VISIBLE
                 }
 
             } ?: run {

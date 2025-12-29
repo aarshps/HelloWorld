@@ -12,6 +12,7 @@ object PreferenceHelper {
     private const val KEY_NOTIF_HOUR = "notification_hour"
     private const val KEY_NOTIF_MINUTE = "notification_minute"
     private const val KEY_USE_GOOGLE_FONT = "use_google_font"
+    private const val KEY_NOTIF_DAYS = "notification_days"
 
     fun recordUsage(context: Context, preferenceKey: String, value: String) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -65,6 +66,16 @@ object PreferenceHelper {
             .putInt(KEY_NOTIF_HOUR, hour)
             .putInt(KEY_NOTIF_MINUTE, minute)
             .apply()
+    }
+
+    fun getNotificationDays(context: Context): Int {
+        val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
+        return prefs.getInt(KEY_NOTIF_DAYS, 7) // Default 7 days
+    }
+
+    fun setNotificationDays(context: Context, days: Int) {
+        val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
+        prefs.edit().putInt(KEY_NOTIF_DAYS, days).apply()
     }
 
     fun performHaptics(view: View, feedbackConstant: Int) {
