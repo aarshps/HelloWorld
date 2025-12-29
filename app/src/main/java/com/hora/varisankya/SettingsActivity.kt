@@ -81,7 +81,7 @@ class SettingsActivity : BaseActivity() {
                     val intent = intent
                     finish()
                     startActivity(intent)
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                    overrideActivityTransition(android.app.Activity.OVERRIDE_TRANSITION_OPEN, android.R.anim.fade_in, android.R.anim.fade_out)
                 }
             }
         }

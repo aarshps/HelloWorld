@@ -58,8 +58,10 @@ class SubscriptionAdapter(
             // Inactive style
             val surfaceContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurfaceContainerHigh, Color.LTGRAY)
             val onSurfaceVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant, Color.GRAY)
+            val outlineVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, Color.LTGRAY)
             
             holder.pillContainer.setCardBackgroundColor(surfaceContainer)
+            holder.pillContainer.strokeColor = outlineVariant
             holder.daysLeftTextView.setTextColor(onSurfaceVariant)
             
         } else {
@@ -118,6 +120,11 @@ class SubscriptionAdapter(
                 animator.start()
 
                 // Resolve Colors
+                val error = MaterialColors.getColor(context, android.R.attr.colorError, Color.RED)
+                val tertiary = MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiary, Color.CYAN)
+                val secondary = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSecondary, Color.LTGRAY)
+                val outlineVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, Color.LTGRAY)
+                
                 val errorContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorErrorContainer, Color.RED)
                 val onErrorContainer = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnErrorContainer, Color.WHITE)
                 
@@ -129,7 +136,6 @@ class SubscriptionAdapter(
                 
                 val surfaceContainerHigh = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSurfaceContainerHigh, Color.LTGRAY)
                 val onSurface = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
-                val outlineVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, Color.LTGRAY)
 
                 // Track Color: Always OutlineVariant (or SurfaceVariant) for distinct empty state
                 holder.progressView.pillBackgroundColor = outlineVariant
@@ -139,34 +145,44 @@ class SubscriptionAdapter(
                     daysLeft < 0 -> {
                         // Overdue: Error Container Style
                         holder.pillContainer.setCardBackgroundColor(errorContainer)
+                        holder.pillContainer.strokeColor = error // Border matches key color
                         holder.daysLeftTextView.setTextColor(onErrorContainer)
                         
                         // Progress Fill: Error
-                        holder.progressView.progressColor = MaterialColors.getColor(context, android.R.attr.colorError, Color.RED)
+                        holder.progressView.progressColor = error
                     }
                     daysLeft <= 3 -> {
                         // Very close: Tertiary Container Style
                         holder.pillContainer.setCardBackgroundColor(tertiaryContainer)
+                        holder.pillContainer.strokeColor = tertiary // Border matches key color
                         holder.daysLeftTextView.setTextColor(onTertiaryContainer)
                         
                         // Progress Fill: Tertiary
-                        holder.progressView.progressColor = MaterialColors.getColor(context, com.google.android.material.R.attr.colorTertiary, Color.CYAN)
+                        holder.progressView.progressColor = tertiary
                     }
                     daysLeft <= 7 -> {
                          // Close: Secondary Container Style
                         holder.pillContainer.setCardBackgroundColor(secondaryContainer)
+                        holder.pillContainer.strokeColor = secondary // Border matches key color
                         holder.daysLeftTextView.setTextColor(onSecondaryContainer)
                         
                         // Progress Fill: Secondary
-                        holder.progressView.progressColor = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSecondary, Color.GRAY)
+                        holder.progressView.progressColor = secondary
                     }
                     else -> {
                         // Far away: Neutral Style
                         holder.pillContainer.setCardBackgroundColor(surfaceContainerHigh)
+                        holder.pillContainer.strokeColor = outlineVariant // Border blends with neutral style
                         holder.daysLeftTextView.setTextColor(onSurface)
                         
                         // Progress Fill: Secondary (Invisible since progress is 0, but logical fallback)
-                        holder.progressView.progressColor = MaterialColors.getColor(context, com.google.android.material.R.attr.colorSecondary, Color.GRAY)
+                        holder.progressView.progressColor = secondary
+                        // Hide track if progress is 0 for cleaner look?
+                        // User requested "simple bar", seeing an empty track might be good context.
+                        // But wait, if progress is 0, user said "Also when progress bar is empty as well, users should be able to understand the progress bar is empty"
+                        // This implies the track SHOULD be visible.
+                        // So I will NOT hide it.
+                        holder.progressView.visibility = View.VISIBLE
                     }
                 }
 
