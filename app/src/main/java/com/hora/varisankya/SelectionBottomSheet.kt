@@ -39,8 +39,8 @@ class SelectionBottomSheet(
 
         dragHandle.setOnClickListener {
             PreferenceHelper.performHaptics(it, HapticFeedbackConstants.CLOCK_TICK)
-            it.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
-                it.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+            it.animate().scaleX(0.9f).scaleY(0.9f).setDuration(Constants.ANIM_DURATION_CLICK).withEndAction {
+                it.animate().scaleX(1f).scaleY(1f).setDuration(Constants.ANIM_DURATION_CLICK).start()
             }.start()
         }
 
@@ -99,17 +99,17 @@ class SelectionBottomSheet(
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState) {
                         BottomSheetBehavior.STATE_EXPANDED -> {
-                            dragHandle.animate().scaleX(1.2f).scaleY(1.2f).setDuration(150)
+                            dragHandle.animate().scaleX(1.2f).scaleY(1.2f).setDuration(Constants.ANIM_DURATION_SHORT)
                                 .withEndAction { dragHandle.animate().scaleX(1f).scaleY(1f).start() }
                                 .start()
                             PreferenceHelper.performHaptics(dragHandle, HapticFeedbackConstants.CONFIRM)
                         }
                         BottomSheetBehavior.STATE_DRAGGING -> {
-                            dragHandle.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).start()
+                            dragHandle.animate().scaleX(0.9f).scaleY(0.9f).setDuration(Constants.ANIM_DURATION_SHORT).start()
                             PreferenceHelper.performHaptics(dragHandle, HapticFeedbackConstants.CLOCK_TICK)
                         }
                         BottomSheetBehavior.STATE_SETTLING, BottomSheetBehavior.STATE_COLLAPSED -> {
-                            dragHandle.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+                            dragHandle.animate().scaleX(1f).scaleY(1f).setDuration(Constants.ANIM_DURATION_SHORT).start()
                         }
                     }
                 }

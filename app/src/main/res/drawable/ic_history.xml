@@ -4,7 +4,20 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
+  
+  <!-- Receipt Outline (Rounded Rect) -->
   <path
-      android:fillColor="@android:color/white"
-      android:pathData="M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89l0.07,0.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7s-3.13,7 -7,7c-1.93,0 -3.68,-0.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54l0.72,-1.21l-3.5,-2.08V8H12z"/>
+      android:pathData="M5,4h14a2,2 0 0 1 2,2v14a2,2 0 0 1 -2,2H5a2,2 0 0 1 -2,-2V6a2,2 0 0 1 2,-2z"
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
+      
+  <!-- Receipt Content Lines -->
+  <path
+      android:pathData="M7,8h10M7,12h10M7,16h6"
+      android:strokeColor="@android:color/white"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
 </vector>

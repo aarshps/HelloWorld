@@ -41,9 +41,8 @@
             android:layout_marginEnd="-16dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
             app:cardCornerRadius="100dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardElevation="3dp"
+            app:strokeWidth="0dp"
             app:layout_constraintBottom_toBottomOf="@+id/subscription_name"
             app:layout_constraintEnd_toStartOf="@+id/unified_status_pill"
             app:layout_constraintTop_toTopOf="@+id/subscription_name">
@@ -53,11 +52,12 @@
                 style="@style/TextAppearance.Material3.LabelSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingStart="6dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="2dp"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="24dp"
+                android:paddingBottom="6dp"
                 android:textColor="?attr/colorOnSurfaceVariant"
+                android:textStyle="bold"
                 tools:text="$ 12.99" />
         </com.google.android.material.card.MaterialCardView>
 
@@ -82,13 +82,12 @@
             android:layout_height="wrap_content"
             app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
             app:cardCornerRadius="100dp"
-            app:cardElevation="0dp"
+            app:cardElevation="3dp"
             app:layout_constraintBottom_toTopOf="@+id/pill_progress_view"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
-            app:strokeWidth="1dp"
-            app:strokeColor="?attr/colorOutlineVariant">
+            app:strokeWidth="0dp">
 
             <TextView
                 android:id="@+id/subscription_days_left"

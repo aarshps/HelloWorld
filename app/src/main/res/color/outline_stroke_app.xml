@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Focused/Hovered: Fallback to defaults or explicit overrides if needed, but here we focus on the default state -->
+    <item android:alpha="1.0" android:color="?attr/colorPrimary" android:state_focused="true"/>
+    <item android:alpha="1.0" android:color="?attr/colorOnSurface" android:state_hovered="true"/>
+    <!-- Default: Standard Outline Color (Visible) -->
+    <item android:color="?attr/colorOutline"/>
+</selector>

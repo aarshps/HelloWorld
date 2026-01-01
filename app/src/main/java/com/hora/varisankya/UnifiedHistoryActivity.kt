@@ -198,7 +198,8 @@ class UnifiedHistoryActivity : BaseActivity() {
 
         loadingContainer.animate()
             .alpha(0f)
-            .setDuration(300)
+            .setDuration(Constants.ANIM_DURATION_MEDIUM)
+            .setInterpolator(androidx.interpolator.view.animation.FastOutSlowInInterpolator())
             .withEndAction { 
                 loadingContainer.visibility = View.GONE 
                 loadingContainer.alpha = 1f // Reset for next time if needed
@@ -207,8 +208,9 @@ class UnifiedHistoryActivity : BaseActivity() {
 
         contentContainer.animate()
             .alpha(1f)
-            .setDuration(400)
-            .setStartDelay(100)
+            .setDuration(Constants.ANIM_DURATION_LONG)
+            .setStartDelay(Constants.ANIM_DURATION_SHORT)
+            .setInterpolator(androidx.interpolator.view.animation.LinearOutSlowInInterpolator())
             .start()
 
         // "Feel it" Haptics
@@ -249,9 +251,12 @@ class UnifiedHistoryActivity : BaseActivity() {
         
         // Hide Back Button
         if (backButton.visibility == View.VISIBLE) {
-            backButton.animate().alpha(0f).setDuration(200).withEndAction {
-                backButton.visibility = View.GONE
-            }.start()
+            backButton.animate().alpha(0f)
+                .setDuration(Constants.ANIM_DURATION_SHORT)
+                .setInterpolator(androidx.interpolator.view.animation.FastOutLinearInInterpolator())
+                .withEndAction {
+                    backButton.visibility = View.GONE
+                }.start()
         }
 
         // Robust Auto-Scroll to End

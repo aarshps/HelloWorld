@@ -108,7 +108,7 @@ class SearchActivity : BaseActivity() {
     private fun setupCategories() {
         categoryChipGroup.removeAllViews()
         Constants.CATEGORIES.forEach { category ->
-            val chip = Chip(ContextThemeWrapper(this, com.google.android.material.R.style.Widget_Material3_Chip_Filter)).apply {
+            val chip = Chip(ContextThemeWrapper(this, R.style.Widget_App_Chip)).apply {
                 text = category
                 isCheckable = true
                 setOnClickListener {
@@ -136,14 +136,16 @@ class SearchActivity : BaseActivity() {
                     
                     loadingContainer.animate()
                         .alpha(0f)
-                        .setDuration(300)
+                        .setDuration(Constants.ANIM_DURATION_MEDIUM)
+                        .setInterpolator(androidx.interpolator.view.animation.FastOutSlowInInterpolator())
                         .withEndAction { loadingContainer.visibility = View.GONE }
                         .start()
 
                     contentContainer.animate()
                         .alpha(1f)
-                        .setDuration(400)
-                        .setStartDelay(100)
+                        .setDuration(Constants.ANIM_DURATION_LONG)
+                        .setStartDelay(Constants.ANIM_DURATION_SHORT)
+                        .setInterpolator(androidx.interpolator.view.animation.LinearOutSlowInInterpolator())
                         .start()
                 }
                 .addOnFailureListener {

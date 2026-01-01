@@ -21,6 +21,8 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 // Explicitly using the app's R class to access all merged attributes
 import com.hora.varisankya.R
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 
 class SubscriptionAdapter(
     private var subscriptions: List<Subscription>,
@@ -55,7 +57,7 @@ class SubscriptionAdapter(
         } catch (e: Exception) {
             subscription.currency
         }
-        holder.amountTextView.text = "$symbol ${subscription.cost}"
+        holder.amountTextView.text = "$symbol ${formatCost(subscription.cost)}"
         
         if (!subscription.active) {
             holder.itemView.alpha = 0.6f
@@ -71,12 +73,12 @@ class SubscriptionAdapter(
             val outlineVariant = MaterialColors.getColor(context, com.google.android.material.R.attr.colorOutlineVariant, Color.LTGRAY)
             
             holder.pillContainer.setCardBackgroundColor(surfaceContainer)
-            holder.pillContainer.strokeColor = outlineVariant
+            holder.pillContainer.strokeWidth = 0
             holder.daysLeftTextView.setTextColor(onSurfaceVariant)
             
             // Sync Amount Pill & Patch
             holder.amountPill.setCardBackgroundColor(surfaceContainer)
-            holder.amountPill.strokeColor = outlineVariant
+            holder.amountPill.strokeWidth = 0
             
             // Sync Text Color
             holder.amountTextView.setTextColor(onSurfaceVariant)
@@ -132,8 +134,8 @@ class SubscriptionAdapter(
                 
                 // Animate progress change
                 val animator = ObjectAnimator.ofInt(holder.progressView, "progress", 0, progress)
-                animator.duration = 600 // Smooth standard duration
-                animator.interpolator = DecelerateInterpolator() // Standard easing
+                animator.duration = Constants.ANIM_DURATION_LONG // Smooth standard duration
+                animator.interpolator = androidx.interpolator.view.animation.FastOutSlowInInterpolator() // Standard easing
                 animator.start()
 
                 // Resolve Colors
@@ -150,6 +152,10 @@ class SubscriptionAdapter(
                 holder.progressView.pillBackgroundColor = outlineVariant
 
                 // SIMPLIFIED STYLING (2 Styles Only)
+                // Remove stroke usage as per new "floating button" design
+                holder.pillContainer.strokeWidth = 0
+                holder.amountPill.strokeWidth = 0
+
                 // Style 1: Notification Triggered (<= notificationWindow) -> Active/Secondary Style
                 // Style 2: Notification Not Triggered (> notificationWindow) -> Neutral Style
                 
@@ -157,7 +163,6 @@ class SubscriptionAdapter(
                     // TRIGGERED STATE (Active)
                     // Uses Secondary Container (Gray/Blue) which user said was "fine".
                     holder.pillContainer.setCardBackgroundColor(secondaryContainer)
-                    holder.pillContainer.strokeColor = secondary
                     holder.daysLeftTextView.setTextColor(onSecondaryContainer)
                     
                     holder.progressView.progressColor = secondary
@@ -165,7 +170,6 @@ class SubscriptionAdapter(
                     
                     // Sync Amount Pill & Patch
                     holder.amountPill.setCardBackgroundColor(secondaryContainer)
-                    holder.amountPill.strokeColor = secondary
                     
                     // Sync Text Color
                     holder.amountTextView.setTextColor(onSecondaryContainer)
@@ -173,7 +177,6 @@ class SubscriptionAdapter(
                 } else {
                     // NOT TRIGGERED STATE (Neutral)
                     holder.pillContainer.setCardBackgroundColor(surfaceContainerHigh)
-                    holder.pillContainer.strokeColor = outlineVariant
                     holder.daysLeftTextView.setTextColor(onSurface)
                     
                     holder.progressView.progressColor = secondary
@@ -182,7 +185,6 @@ class SubscriptionAdapter(
                     
                     // Sync Amount Pill & Patch
                     holder.amountPill.setCardBackgroundColor(surfaceContainerHigh)
-                    holder.amountPill.strokeColor = outlineVariant
                     
                     // Sync Text Color
                     holder.amountTextView.setTextColor(onSurface)
@@ -220,5 +222,49 @@ class SubscriptionAdapter(
         val diffResult = DiffUtil.calculateDiff(diffCallback)
         this.subscriptions = newSubscriptions
         diffResult.dispatchUpdatesTo(this)
+    }
+
+    private fun formatCost(amount: Double): String {
+        if (amount == 0.0) return "0"
+        
+        return when {
+            amount >= 1_000_000 -> formatValue(amount, 1_000_000.0, "m")
+            amount >= 100_000 -> formatValue(amount, 100_000.0, "l")
+            else -> {
+                // Everything else uses 'k'
+                // Constraint: Max 1 decimal, Min 0.1k
+                val valueInK = amount / 1000.0
+                // We want to format to 1 decimal first to check the rounded value
+                val formatted = String.format(Locale.US, "%.1f", valueInK)
+                
+                // If the rounded value is less than 0.1 (e.g. 0.0), force it to 0.1
+                // Also explicitly handle small non-zero values that round down
+                if (formatted.toDouble() < 0.1) {
+                    "0.1k"
+                } else {
+                    // Re-use logic to strip .0 if needed (e.g. 1.0k -> 1k)
+                    // But wait, user said "0.5k", "0.1k".
+                    // They didn't explicitly say "strip .0" in this turn, 
+                    // but "1 decimal max" supports it. 
+                    // Use a modified formatValue logic inline or call it.
+                    val cleaned = if (formatted.endsWith(".0")) {
+                        formatted.substring(0, formatted.length - 2)
+                    } else {
+                        formatted
+                    }
+                    "${cleaned}k"
+                }
+            }
+        }
+    }
+
+    private fun formatValue(amount: Double, divisor: Double, suffix: String): String {
+        val value = amount / divisor
+        val formatted = String.format(Locale.US, "%.1f", value)
+        return if (formatted.endsWith(".0")) {
+            formatted.substring(0, formatted.length - 2) + suffix
+        } else {
+            formatted + suffix
+        }
     }
 }

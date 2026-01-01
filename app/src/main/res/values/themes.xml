@@ -36,6 +36,9 @@
         <!-- Apply unified header style -->
         <item name="appBarLayoutStyle">@style/Widget.App.AppBarLayout</item>
         <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+        
+        <!-- Global Chip Style -->
+        <item name="chipStyle">@style/Widget.App.Chip</item>
     </style>
 
     <!-- System Font Theme -->
@@ -96,11 +99,13 @@
     <!-- Style for rounded text input fields -->
     <style name="App.TextInputLayout.Rounded" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="shapeAppearanceOverlay">@style/App.ShapeAppearanceOverlay.Rounded</item>
+        <item name="boxStrokeColor">@color/outline_stroke_app</item>
     </style>
 
     <!-- Style for rounded dropdown menus -->
     <style name="App.TextInputLayout.Rounded.ExposedDropdownMenu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
         <item name="shapeAppearanceOverlay">@style/App.ShapeAppearanceOverlay.Rounded</item>
+        <item name="boxStrokeColor">@color/outline_stroke_app</item>
     </style>
 
     <!-- Base style for the button toggle group -->
@@ -117,7 +122,7 @@
     <!-- Style for Destructive/Delete Buttons (Outlined Error) -->
     <style name="App.Button.Destructive" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:textColor">?attr/colorError</item>
-        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeColor">@color/outline_stroke_app</item>
         <item name="rippleColor">?attr/colorError</item>
     </style>
 
@@ -134,6 +139,12 @@
     <style name="Widget.App.Slider.Tooltip" parent="Widget.Material3.Tooltip">
         <item name="backgroundTint">?attr/colorOnSurface</item>
         <item name="android:textColor">?attr/colorSurface</item>
+    </style>
+
+    <!-- Unified Chip Style with Standard Borders -->
+    <style name="Widget.App.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipStrokeColor">@color/chip_stroke_app</item>
+        <item name="chipStrokeWidth">1dp</item>
     </style>
 
 </resources>

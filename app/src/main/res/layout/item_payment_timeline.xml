@@ -22,7 +22,8 @@
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true"
             android:layout_above="@+id/timeline_dot"
-            android:background="?attr/colorOutlineVariant" />
+            android:background="@drawable/shape_rounded_line"
+            android:backgroundTint="?attr/colorOutlineVariant" />
 
         <View
             android:id="@+id/timeline_dot"
@@ -38,7 +39,8 @@
             android:layout_height="match_parent"
             android:layout_centerHorizontal="true"
             android:layout_below="@+id/timeline_dot"
-            android:background="?attr/colorOutlineVariant" />
+            android:background="@drawable/shape_rounded_line"
+            android:backgroundTint="?attr/colorOutlineVariant" />
 
     </RelativeLayout>
 
