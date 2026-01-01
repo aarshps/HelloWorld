@@ -60,6 +60,14 @@
             tools:text="Oct 24, 2023" />
 
         <TextView
+            android:id="@+id/text_subscription_name"
+            style="@style/TextAppearance.Material3.BodyMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            tools:text="Netflix" />
+
+        <TextView
             android:id="@+id/text_payment_amount"
             style="@style/TextAppearance.Material3.BodyLarge"
             android:layout_width="wrap_content"

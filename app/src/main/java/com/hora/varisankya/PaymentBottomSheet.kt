@@ -231,10 +231,14 @@ class PaymentBottomSheet(
         if (currentViewMode == "chart") {
             historyRecycler.visibility = View.GONE
             chartScrollView.visibility = View.VISIBLE
-            // Scroll to end (newest)
-            chartScrollView.post {
-                chartScrollView.fullScroll(View.FOCUS_RIGHT)
-            }
+            
+            // Robust Scroll to end (newest)
+            chartScrollView.viewTreeObserver.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    chartScrollView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                    chartScrollView.fullScroll(android.widget.HorizontalScrollView.FOCUS_RIGHT)
+                }
+            })
         } else {
             historyRecycler.visibility = View.VISIBLE
             chartScrollView.visibility = View.GONE
@@ -267,6 +271,14 @@ class PaymentBottomSheet(
                 progressHistory.visibility = View.GONE
                 
                 val payments = snapshots.toObjects(PaymentRecord::class.java)
+                
+                val symbol = try {
+                    java.util.Currency.getInstance(subscription.currency).symbol
+                } catch (e: Exception) {
+                    "$"
+                }
+                paymentChartView.currencySymbol = symbol
+                
                 paymentChartView.setPaymentData(payments)
                 
                 if (payments.isEmpty()) {
@@ -284,10 +296,12 @@ class PaymentBottomSheet(
                     if (currentViewMode == "list") historyRecycler.startAnimation(fadeIn)
                     else chartScrollView.startAnimation(fadeIn)
 
-                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency, 
+                    val adapter = PaymentAdapter(subscription.currency, 
                         onEditClicked = { record -> editPaymentDate(record) },
                         onDeleteClicked = { record -> confirmDeletePayment(record) }
                     )
+                    historyRecycler.adapter = adapter
+                    adapter.submitList(payments)
                 }
             }
             .addOnFailureListener { e ->
@@ -307,6 +321,14 @@ class PaymentBottomSheet(
                 if (!isAdded) return@addOnSuccessListener
                 progressHistory.visibility = View.GONE
                 val payments = snapshots.toObjects(PaymentRecord::class.java).sortedByDescending { it.date }
+                
+                val symbol = try {
+                    java.util.Currency.getInstance(subscription.currency).symbol
+                } catch (e: Exception) {
+                    "$"
+                }
+                paymentChartView.currencySymbol = symbol
+
                 paymentChartView.setPaymentData(payments)
                 
                 if (payments.isEmpty()) {
@@ -316,10 +338,12 @@ class PaymentBottomSheet(
                 } else {
                     noHistoryContainer.visibility = View.GONE
                     refreshVisibility()
-                    historyRecycler.adapter = PaymentAdapter(payments, subscription.currency,
+                    val adapter = PaymentAdapter(subscription.currency,
                         onEditClicked = { record -> editPaymentDate(record) },
                         onDeleteClicked = { record -> confirmDeletePayment(record) }
                     )
+                    historyRecycler.adapter = adapter
+                    adapter.submitList(payments)
                 }
             }
             .addOnFailureListener { e ->

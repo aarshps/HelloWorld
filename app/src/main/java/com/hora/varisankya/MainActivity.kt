@@ -56,6 +56,7 @@ class MainActivity : BaseActivity() {
     private lateinit var appBar: AppBarLayout
     private lateinit var subscriptionsRecyclerView: RecyclerView
     private lateinit var fabAddSubscription: ExtendedFloatingActionButton
+    private lateinit var fabHistory: com.google.android.material.floatingactionbutton.FloatingActionButton
     private lateinit var emptyStateContainer: LinearLayout
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var adapter: SubscriptionAdapter
@@ -80,6 +81,7 @@ class MainActivity : BaseActivity() {
         appBar = findViewById(R.id.app_bar)
         subscriptionsRecyclerView = findViewById(R.id.subscriptions_recycler_view)
         fabAddSubscription = findViewById(R.id.fab_add_subscription)
+        fabHistory = findViewById(R.id.fab_history)
         emptyStateContainer = findViewById(R.id.empty_state_container)
         swipeRefreshLayout = findViewById(R.id.swipe_refresh_layout)
 
@@ -130,17 +132,27 @@ class MainActivity : BaseActivity() {
             showAddSubscriptionSheet()
         }
 
+        fabHistory.setOnClickListener { view ->
+            PreferenceHelper.performHaptics(view, HapticFeedbackConstants.CLOCK_TICK)
+            startActivity(Intent(this, UnifiedHistoryActivity::class.java))
+        }
+
         // Scroll Behavior and Haptics
         subscriptionsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0) fabAddSubscription.shrink()
-                else if (dy < 0) fabAddSubscription.extend()
+                if (dy > 0) {
+                    fabAddSubscription.shrink()
+                    fabHistory.hide()
+                } else if (dy < 0) {
+                    fabAddSubscription.extend()
+                    fabHistory.show()
+                }
 
                 val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
                 val firstVisibleItem = layoutManager?.findFirstVisibleItemPosition() ?: -1
                 
                 if (firstVisibleItem != lastFirstVisibleItem && firstVisibleItem != -1) {
-                    PreferenceHelper.performHaptics(recyclerView, HapticFeedbackConstants.CLOCK_TICK)
+                    PreferenceHelper.performHaptics(recyclerView, HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
                     lastFirstVisibleItem = firstVisibleItem
                 }
             }
@@ -295,6 +307,7 @@ class MainActivity : BaseActivity() {
             loginContainer.visibility = View.GONE
             appBar.visibility = View.VISIBLE
             fabAddSubscription.visibility = View.VISIBLE
+            fabHistory.visibility = View.VISIBLE
             
             profileImage.visibility = View.VISIBLE
             searchTriggerLayout.visibility = View.VISIBLE
@@ -307,6 +320,7 @@ class MainActivity : BaseActivity() {
             appBar.visibility = View.GONE
             subscriptionsRecyclerView.visibility = View.GONE
             fabAddSubscription.visibility = View.GONE
+            fabHistory.visibility = View.GONE
         }
     }
 }

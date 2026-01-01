@@ -23,6 +23,11 @@
             android:theme="@style/Theme.Varisankya"
             android:windowSoftInputMode="stateVisible" />
         <activity
+            android:name=".UnifiedHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Varisankya"
+            android:parentActivityName=".MainActivity" />
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.Varisankya"

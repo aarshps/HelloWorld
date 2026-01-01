@@ -33,6 +33,8 @@ class SubscriptionAdapter(
         val detailsTextView: TextView = view.findViewById(R.id.subscription_details)
         val pillContainer: MaterialCardView = view.findViewById(R.id.unified_status_pill)
         val progressView: PillProgressView = view.findViewById(R.id.pill_progress_view)
+        val amountPill: MaterialCardView = view.findViewById(R.id.amount_pill)
+        val amountTextView: TextView = view.findViewById(R.id.subscription_amount)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -46,6 +48,14 @@ class SubscriptionAdapter(
         val context = holder.itemView.context
         
         holder.nameTextView.text = subscription.name
+        
+        // Format Amount
+        val symbol = try {
+            java.util.Currency.getInstance(subscription.currency).symbol
+        } catch (e: Exception) {
+            subscription.currency
+        }
+        holder.amountTextView.text = "$symbol ${subscription.cost}"
         
         if (!subscription.active) {
             holder.itemView.alpha = 0.6f
@@ -63,6 +73,13 @@ class SubscriptionAdapter(
             holder.pillContainer.setCardBackgroundColor(surfaceContainer)
             holder.pillContainer.strokeColor = outlineVariant
             holder.daysLeftTextView.setTextColor(onSurfaceVariant)
+            
+            // Sync Amount Pill & Patch
+            holder.amountPill.setCardBackgroundColor(surfaceContainer)
+            holder.amountPill.strokeColor = outlineVariant
+            
+            // Sync Text Color
+            holder.amountTextView.setTextColor(onSurfaceVariant)
             
         } else {
             holder.itemView.alpha = 1.0f
@@ -145,6 +162,14 @@ class SubscriptionAdapter(
                     
                     holder.progressView.progressColor = secondary
                     holder.progressView.visibility = View.VISIBLE
+                    
+                    // Sync Amount Pill & Patch
+                    holder.amountPill.setCardBackgroundColor(secondaryContainer)
+                    holder.amountPill.strokeColor = secondary
+                    
+                    // Sync Text Color
+                    holder.amountTextView.setTextColor(onSecondaryContainer)
+                    
                 } else {
                     // NOT TRIGGERED STATE (Neutral)
                     holder.pillContainer.setCardBackgroundColor(surfaceContainerHigh)
@@ -154,6 +179,13 @@ class SubscriptionAdapter(
                     holder.progressView.progressColor = secondary
                     // Keep visible as per "users should be able to understand the progress bar is empty"
                     holder.progressView.visibility = View.VISIBLE
+                    
+                    // Sync Amount Pill & Patch
+                    holder.amountPill.setCardBackgroundColor(surfaceContainerHigh)
+                    holder.amountPill.strokeColor = outlineVariant
+                    
+                    // Sync Text Color
+                    holder.amountTextView.setTextColor(onSurface)
                 }
 
             } ?: run {

@@ -11,15 +11,18 @@ import java.text.SimpleDateFormat
 import java.util.Currency
 import java.util.Locale
 
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.DiffUtil
+
 class PaymentAdapter(
-    private val payments: List<PaymentRecord>,
-    private val currencyCode: String,
-    private val onEditClicked: (PaymentRecord) -> Unit,
-    private val onDeleteClicked: (PaymentRecord) -> Unit
-) : RecyclerView.Adapter<PaymentAdapter.ViewHolder>() {
+    private val defaultCurrency: String,
+    private val onEditClicked: ((PaymentRecord) -> Unit)? = null,
+    private val onDeleteClicked: ((PaymentRecord) -> Unit)? = null
+) : ListAdapter<PaymentRecord, PaymentAdapter.ViewHolder>(PaymentDiffCallback()) {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val dateText: TextView = view.findViewById(R.id.text_payment_date)
+        val subNameText: TextView = view.findViewById(R.id.text_subscription_name)
         val amountText: TextView = view.findViewById(R.id.text_payment_amount)
         val lineTop: View = view.findViewById(R.id.timeline_line_top)
         val lineBottom: View = view.findViewById(R.id.timeline_line_bottom)
@@ -33,33 +36,53 @@ class PaymentAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val payment = payments[position]
+        val payment = getItem(position)
         val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
         holder.dateText.text = payment.date?.let { dateFormat.format(it) } ?: "Unknown Date"
+        holder.subNameText.text = payment.subscriptionName ?: "Unknown Subscription"
         
+        val recordCurrency = payment.currency ?: defaultCurrency
         val symbol = try {
-            Currency.getInstance(currencyCode).symbol
+            Currency.getInstance(recordCurrency).symbol
         } catch (e: Exception) {
-            currencyCode
+            recordCurrency
         }
         holder.amountText.text = String.format("%s %.2f", symbol, payment.amount)
 
         // Timeline logic
         holder.lineTop.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
-        holder.lineBottom.visibility = if (position == payments.size - 1) View.INVISIBLE else View.VISIBLE
+        holder.lineBottom.visibility = if (position == itemCount - 1) View.INVISIBLE else View.VISIBLE
 
-        // Make entire row clickable for edit
-        holder.itemView.setOnClickListener {
-            PreferenceHelper.performHaptics(it, HapticFeedbackConstants.VIRTUAL_KEY)
-            onEditClicked(payment)
+        if (onEditClicked != null) {
+            holder.itemView.setOnClickListener {
+                PreferenceHelper.performHaptics(it, HapticFeedbackConstants.VIRTUAL_KEY)
+                onEditClicked.invoke(payment)
+            }
+        } else {
+            holder.itemView.setOnClickListener(null)
+            holder.itemView.isClickable = false
         }
 
-        holder.btnDelete.setOnClickListener {
-            PreferenceHelper.performHaptics(it, HapticFeedbackConstants.LONG_PRESS)
-            onDeleteClicked(payment)
+        if (onDeleteClicked != null) {
+            holder.btnDelete.visibility = View.VISIBLE
+            holder.btnDelete.setOnClickListener {
+                PreferenceHelper.performHaptics(it, HapticFeedbackConstants.LONG_PRESS)
+                onDeleteClicked.invoke(payment)
+            }
+        } else {
+            holder.btnDelete.visibility = View.GONE
         }
     }
 
-    override fun getItemCount() = payments.size
+    class PaymentDiffCallback : DiffUtil.ItemCallback<PaymentRecord>() {
+        override fun areItemsTheSame(oldItem: PaymentRecord, newItem: PaymentRecord): Boolean {
+            // Use ID if available, otherwise assume unique object ref or criteria
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: PaymentRecord, newItem: PaymentRecord): Boolean {
+            return oldItem == newItem
+        }
+    }
 }

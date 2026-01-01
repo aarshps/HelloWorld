@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.core.widget.NestedScrollView
+import java.lang.Math.abs
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
 import com.google.android.material.timepicker.MaterialTimePicker
@@ -40,6 +42,19 @@ class SettingsActivity : BaseActivity() {
         setupHapticsToggle()
         setupPrivacyPolicy()
         setupPaymentViewToggle()
+        setupScrollHaptics()
+    }
+
+    private fun setupScrollHaptics() {
+        val scrollView = findViewById<NestedScrollView>(R.id.settings_scroll_view)
+        var lastScrollY = 0
+
+        scrollView.setOnScrollChangeListener(NestedScrollView.OnScrollChangeListener { v, _, scrollY, _, _ ->
+            if (abs(scrollY - lastScrollY) > 150) {
+                PreferenceHelper.performHaptics(v, HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
+                lastScrollY = scrollY
+            }
+        })
     }
 
     private fun setupPaymentViewToggle() {

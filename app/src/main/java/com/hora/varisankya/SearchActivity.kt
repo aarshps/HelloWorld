@@ -7,6 +7,7 @@ import android.view.ContextThemeWrapper
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
@@ -25,6 +26,8 @@ class SearchActivity : BaseActivity() {
     private lateinit var adapter: SubscriptionAdapter
     
     private var allSubscriptions: List<Subscription> = emptyList()
+
+    private var lastFirstVisibleItem = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,14 +49,46 @@ class SearchActivity : BaseActivity() {
         // Initialize adapter with empty list
         adapter = SubscriptionAdapter(emptyList()) { subscription ->
             val addSubscriptionBottomSheet = AddSubscriptionBottomSheet(subscription) {
-                loadAllSubscriptions() // Reload if changed
+                // Determine views again or just a simple reload (could be cleaner, but for now looking up works)
+                val contentContainer = findViewById<View>(R.id.content_container)
+                val loadingContainer = findViewById<View>(R.id.loading_container)
+                val loadingStatus = findViewById<TextView>(R.id.loading_status)
+                
+                // For reload, maybe minimal loading or same full loading?
+                // Let's do full loading for consistency
+                loadingContainer.alpha = 1f
+                loadingContainer.visibility = View.VISIBLE
+                contentContainer.visibility = View.GONE
+                loadAllSubscriptions(contentContainer, loadingContainer, loadingStatus) 
             }
             addSubscriptionBottomSheet.show(supportFragmentManager, "AddSubscriptionBottomSheet")
         }
         searchRecyclerView.adapter = adapter
         
+        // Scroll Haptics
+        searchRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
+                val firstVisibleItem = layoutManager?.findFirstVisibleItemPosition() ?: -1
+                
+                if (firstVisibleItem != lastFirstVisibleItem && firstVisibleItem != -1) {
+                    PreferenceHelper.performHaptics(recyclerView, HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
+                    lastFirstVisibleItem = firstVisibleItem
+                }
+            }
+        })
+        
         setupCategories()
-        loadAllSubscriptions()
+        
+        // Initial Loading State
+        val contentContainer = findViewById<View>(R.id.content_container)
+        val loadingContainer = findViewById<View>(R.id.loading_container)
+        val loadingStatus = findViewById<TextView>(R.id.loading_status)
+        
+        loadingContainer.visibility = View.VISIBLE
+        contentContainer.visibility = View.GONE
+        
+        loadAllSubscriptions(contentContainer, loadingContainer, loadingStatus)
 
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -84,14 +119,36 @@ class SearchActivity : BaseActivity() {
         }
     }
 
-    private fun loadAllSubscriptions() {
+    private fun loadAllSubscriptions(contentContainer: View, loadingContainer: View, loadingStatus: TextView) {
         auth.currentUser?.uid?.let { userId ->
+            loadingStatus.text = "Syncing..."
+            
             firestore.collection("users").document(userId)
                 .collection("subscriptions")
                 .get()
                 .addOnSuccessListener { snapshots ->
                     allSubscriptions = snapshots.toObjects(Subscription::class.java)
                     performSearch()
+                    
+                    // Smooth Crossfade
+                    contentContainer.alpha = 0f
+                    contentContainer.visibility = View.VISIBLE
+                    
+                    loadingContainer.animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction { loadingContainer.visibility = View.GONE }
+                        .start()
+
+                    contentContainer.animate()
+                        .alpha(1f)
+                        .setDuration(400)
+                        .setStartDelay(100)
+                        .start()
+                }
+                .addOnFailureListener {
+                    loadingContainer.visibility = View.GONE
+                    contentContainer.visibility = View.VISIBLE
                 }
         }
     }

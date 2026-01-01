@@ -10,7 +10,7 @@ Varisankya is a modern, high-performance Android application designed to help us
 *   **Smart Status Indicators**: Subscriptions feature "fattier" status pills with dynamic 1dp colored borders (Red for overdue, Cyan for upcoming, Gray for standard) to signal urgency at a glance.
 *   **Visual Progress Tracking**: A decoupled, always-visible progress meter provides immediate context on payment timelines.
 *   **Fluid Motion**: Smooth deceleration animations and refined layout spacing ensure a premium, responsive feel.
-*   **Immersive Haptics**: Tactile feedback integrated throughout the core user journey for a responsive touch experience.
+*   **Immersive Haptics & Silent UX**: A completely toast-free experience. All actions are verified via distinct haptic feedback patterns (Tick, Click, Heavy Click) and subtle UI transitions, ensuring a distraction-free environment.
 *   **Themed Branding**: Intelligent logo adaptation that responds to system light/dark mode changes.
 
 ### 📊 Smart Analytics & History
@@ -35,7 +35,7 @@ Varisankya is a modern, high-performance Android application designed to help us
 
 ## 🛠 Technical Specifications
 
-*   **Platform**: Android 15+ (API 35+)
+*   **Platform**: Android 15+ (Min API 35, Target API 36)
 *   **Language**: 100% Kotlin
 *   **UI Framework**: Material Components 1.14.0-alpha08 (Material 3)
 *   **Backend**: Firebase (Auth & Firestore)
