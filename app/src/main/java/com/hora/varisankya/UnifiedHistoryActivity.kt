@@ -27,6 +27,7 @@ class UnifiedHistoryActivity : BaseActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var loadingContainer: View
     private lateinit var loadingStatus: TextView
+    private lateinit var noHistoryContainer: View
 
 
     private var allPayments: List<PaymentRecord> = emptyList()
@@ -60,6 +61,7 @@ class UnifiedHistoryActivity : BaseActivity() {
         backButton = findViewById(R.id.btn_chart_back)
         loadingContainer = findViewById(R.id.loading_container)
         loadingStatus = findViewById(R.id.loading_status)
+        noHistoryContainer = findViewById(R.id.no_history_container)
 
         // Initialize Adapter
         // Initialize Adapter (Read-Only Mode but with Haptics)
@@ -191,10 +193,18 @@ class UnifiedHistoryActivity : BaseActivity() {
         contentContainer.alpha = 0f
         contentContainer.visibility = View.VISIBLE
         
-        // Hide individual parts? No, they are visible inside the container
-        findViewById<View>(R.id.chart_scroll_container).visibility = View.VISIBLE
-        chartView.visibility = View.VISIBLE
-        recyclerView.visibility = View.VISIBLE
+        // Show/Hide Empty State
+        if (allPayments.isEmpty()) {
+            noHistoryContainer.visibility = View.VISIBLE
+            findViewById<View>(R.id.chart_scroll_container).visibility = View.GONE
+            chartView.visibility = View.GONE
+            recyclerView.visibility = View.GONE
+        } else {
+            noHistoryContainer.visibility = View.GONE
+            findViewById<View>(R.id.chart_scroll_container).visibility = View.VISIBLE
+            chartView.visibility = View.VISIBLE
+            recyclerView.visibility = View.VISIBLE
+        }
 
         loadingContainer.animate()
             .alpha(0f)

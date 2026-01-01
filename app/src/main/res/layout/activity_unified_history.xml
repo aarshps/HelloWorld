@@ -111,6 +111,34 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/no_history_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:alpha="0.4"
+                android:src="@drawable/ic_history"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/text_no_history"
+                style="@style/TextAppearance.Material3.BodyLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="No payments recorded"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/loading_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
