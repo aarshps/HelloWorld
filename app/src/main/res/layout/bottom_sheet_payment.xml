@@ -39,13 +39,7 @@
                 android:layout_weight="1"
                 android:text="Payment History" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_toggle_view"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:iconTint="?attr/colorOnSurface"
-                app:icon="@drawable/ic_show_chart" />
+
 
         </LinearLayout>
 
@@ -92,21 +86,7 @@
                     android:gravity="center" />
             </LinearLayout>
 
-            <HorizontalScrollView
-                android:id="@+id/chart_scroll_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:fillViewport="true"
-                android:visibility="gone">
 
-                <com.hora.varisankya.PaymentHistoryChart
-                    android:id="@+id/payment_chart_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="220dp"
-                    android:paddingTop="24dp"
-                    android:layout_marginBottom="8dp" />
-            </HorizontalScrollView>
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progress_history"
@@ -170,9 +150,7 @@
             android:textStyle="bold"
             android:text="Change Schedule" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="24dp" />
+
 
     </LinearLayout>
     </androidx.core.widget.NestedScrollView>

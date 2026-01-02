@@ -34,6 +34,12 @@ class PaymentBottomSheet(
     private val onPaymentRecorded: () -> Unit
 ) : BottomSheetDialogFragment() {
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): android.app.Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        return dialog
+    }
+
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private lateinit var historyRecycler: RecyclerView
@@ -44,15 +50,11 @@ class PaymentBottomSheet(
     private lateinit var btnPayCustom: Button
     private lateinit var textDueInfo: TextView
     private lateinit var textNextPreview: TextView
-    private lateinit var btnToggleView: MaterialButton
-    private lateinit var chartScrollView: android.widget.HorizontalScrollView
-    private lateinit var paymentChartView: PaymentHistoryChart
 
     private var currentDueDate: Date? = null
     private var projectedNextDate: Date? = null
-    private var currentViewMode = "list"
 
-
+    private lateinit var paymentSheetRoot: ViewGroup // Added property
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,7 +64,9 @@ class PaymentBottomSheet(
         firestore = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
 
+        paymentSheetRoot = view.findViewById(R.id.payment_sheet_root) // Initialized
         historyRecycler = view.findViewById(R.id.recycler_history)
+        // ... (rest of caching)
         noHistoryContainer = view.findViewById(R.id.no_history_container)
         textNoHistory = view.findViewById(R.id.text_no_history)
         progressHistory = view.findViewById(R.id.progress_history)
@@ -70,25 +74,12 @@ class PaymentBottomSheet(
         btnPayCustom = view.findViewById(R.id.btn_pay_custom)
         textDueInfo = view.findViewById(R.id.text_due_date_info)
         textNextPreview = view.findViewById(R.id.text_next_due_date_preview)
-        btnToggleView = view.findViewById(R.id.btn_toggle_view)
-        chartScrollView = view.findViewById(R.id.chart_scroll_view)
-        paymentChartView = view.findViewById(R.id.payment_chart_view)
         
         view.findViewById<View>(R.id.drag_handle).setOnClickListener {
             PreferenceHelper.performHaptics(it, HapticFeedbackConstants.CLOCK_TICK)
             it.animate().scaleX(0.9f).scaleY(0.9f).setDuration(Constants.ANIM_DURATION_CLICK).withEndAction {
                 it.animate().scaleX(1f).scaleY(1f).setDuration(Constants.ANIM_DURATION_CLICK).start()
             }.start()
-        }
-
-        currentViewMode = PreferenceHelper.getPaymentViewMode(requireContext())
-        updateViewMode()
-
-        btnToggleView.setOnClickListener {
-            PreferenceHelper.performHaptics(it, HapticFeedbackConstants.CLOCK_TICK)
-            currentViewMode = if (currentViewMode == "list") "chart" else "list"
-            PreferenceHelper.setPaymentViewMode(requireContext(), currentViewMode)
-            updateViewMode()
         }
 
         currentDueDate = subscription.dueDate ?: Date()
@@ -98,7 +89,7 @@ class PaymentBottomSheet(
 
         return view
     }
-
+    
     override fun onStart() {
         super.onStart()
         val bottomSheet = (dialog as? BottomSheetDialog)?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
@@ -126,7 +117,6 @@ class PaymentBottomSheet(
                 }
 
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                    // Optional: Add slide effects if needed
                 }
             })
         }
@@ -207,43 +197,7 @@ class PaymentBottomSheet(
         return cal.time
     }
 
-    private fun updateViewMode() {
-        if (currentViewMode == "chart") {
-            btnToggleView.setIconResource(R.drawable.ic_list)
-        } else {
-            btnToggleView.setIconResource(R.drawable.ic_show_chart)
-        }
-        
-        // If data is already loaded (adapter not null), refresh visibility
-        // If adapter is null, we are likely loading or have no data; 
-        // loadHistory() will handle the empty state visibility correctly.
-        if (::historyRecycler.isInitialized && historyRecycler.adapter != null) {
-            refreshVisibility()
-        } else if (::noHistoryContainer.isInitialized && noHistoryContainer.visibility == View.VISIBLE) {
-            // If already showing no history, ensure it stays visible and others gone
-             historyRecycler.visibility = View.GONE
-             chartScrollView.visibility = View.GONE
-             // paymentChartView is inside scrollview, so hiding scrollview hides chart
-        }
-    }
 
-    private fun refreshVisibility() {
-        if (currentViewMode == "chart") {
-            historyRecycler.visibility = View.GONE
-            chartScrollView.visibility = View.VISIBLE
-            
-            // Robust Scroll to end (newest)
-            chartScrollView.viewTreeObserver.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    chartScrollView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                    chartScrollView.fullScroll(android.widget.HorizontalScrollView.FOCUS_RIGHT)
-                }
-            })
-        } else {
-            historyRecycler.visibility = View.VISIBLE
-            chartScrollView.visibility = View.GONE
-        }
-    }
 
     private fun loadHistory() {
         val userId = auth.currentUser?.uid ?: return
@@ -272,30 +226,17 @@ class PaymentBottomSheet(
                 
                 val payments = snapshots.toObjects(PaymentRecord::class.java)
                 
-                val symbol = try {
-                    java.util.Currency.getInstance(subscription.currency).symbol
-                } catch (e: Exception) {
-                    "$"
-                }
-                paymentChartView.currencySymbol = symbol
-                
-                paymentChartView.setPaymentData(payments)
-                
                 if (payments.isEmpty()) {
+                    historyRecycler.adapter = null
                     historyRecycler.visibility = View.GONE
-                    chartScrollView.visibility = View.GONE
                     noHistoryContainer.visibility = View.VISIBLE
                     val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 300 }
                     noHistoryContainer.startAnimation(fadeIn)
                     textNoHistory.text = "No Payment History"
                 } else {
                     noHistoryContainer.visibility = View.GONE
-                    refreshVisibility()
+                    historyRecycler.visibility = View.VISIBLE
                     
-                    val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 300 }
-                    if (currentViewMode == "list") historyRecycler.startAnimation(fadeIn)
-                    else chartScrollView.startAnimation(fadeIn)
-
                     val adapter = PaymentAdapter(subscription.currency, 
                         onEditClicked = { record -> editPaymentDate(record) },
                         onDeleteClicked = { record -> confirmDeletePayment(record) }
@@ -322,22 +263,13 @@ class PaymentBottomSheet(
                 progressHistory.visibility = View.GONE
                 val payments = snapshots.toObjects(PaymentRecord::class.java).sortedByDescending { it.date }
                 
-                val symbol = try {
-                    java.util.Currency.getInstance(subscription.currency).symbol
-                } catch (e: Exception) {
-                    "$"
-                }
-                paymentChartView.currencySymbol = symbol
-
-                paymentChartView.setPaymentData(payments)
-                
                 if (payments.isEmpty()) {
+                    historyRecycler.adapter = null
                     historyRecycler.visibility = View.GONE
-                    chartScrollView.visibility = View.GONE
                     noHistoryContainer.visibility = View.VISIBLE
                 } else {
                     noHistoryContainer.visibility = View.GONE
-                    refreshVisibility()
+                    historyRecycler.visibility = View.VISIBLE
                     val adapter = PaymentAdapter(subscription.currency,
                         onEditClicked = { record -> editPaymentDate(record) },
                         onDeleteClicked = { record -> confirmDeletePayment(record) }

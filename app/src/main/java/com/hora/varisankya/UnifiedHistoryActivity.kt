@@ -53,7 +53,8 @@ class UnifiedHistoryActivity : BaseActivity() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         chartView = findViewById(R.id.unified_chart)
         recyclerView = findViewById(R.id.history_recycler_view)
@@ -177,15 +178,6 @@ class UnifiedHistoryActivity : BaseActivity() {
     private fun onDataReady(payments: List<PaymentRecord>) {
         allPayments = payments.sortedByDescending { it.date }
         
-        // Detect dominant currency
-        val currencyCode = allPayments.firstOrNull()?.currency ?: "USD"
-        val symbol = try {
-            java.util.Currency.getInstance(currencyCode).symbol
-        } catch (e: Exception) {
-            "$"
-        }
-        chartView.currencySymbol = symbol
-        
         // Smooth Crossfade Animation: Loading Out, Content In
         val contentContainer = findViewById<View>(R.id.content_container)
         
@@ -196,11 +188,10 @@ class UnifiedHistoryActivity : BaseActivity() {
         // Show/Hide Empty State
         if (allPayments.isEmpty()) {
             noHistoryContainer.visibility = View.VISIBLE
-            findViewById<View>(R.id.chart_scroll_container).visibility = View.GONE
-            chartView.visibility = View.GONE
-            recyclerView.visibility = View.GONE
+            contentContainer.visibility = View.GONE
         } else {
             noHistoryContainer.visibility = View.GONE
+            contentContainer.visibility = View.VISIBLE
             findViewById<View>(R.id.chart_scroll_container).visibility = View.VISIBLE
             chartView.visibility = View.VISIBLE
             recyclerView.visibility = View.VISIBLE
@@ -229,32 +220,50 @@ class UnifiedHistoryActivity : BaseActivity() {
         showOverview()
     }
 
-
-
     private fun showOverview() {
         currentLevel = ViewLevel.Overview
         
-        // Aggregate by Month (YYYY-MM to sort)
+        // Aggregate by (Month + Currency)
+        // Key: "2025-10|USD", "2025-10|INR"
         val grouped = allPayments.groupBy { 
             val cal = Calendar.getInstance()
             cal.time = it.date ?: Date()
-            "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH)}"
+            "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH)}|${it.currency}"
         }
 
-        val sortedKeys = grouped.keys.sortedWith(compareBy { 
-             val parts = it.split("-")
+        // Sort by Time only, then Currency
+        val sortedKeys = grouped.keys.sortedWith(compareBy<String> { 
+             val parts = it.split("|")[0].split("-")
              parts[0].toInt() * 12 + parts[1].toInt()
-        })
+        }.thenBy { it.split("|")[1] })
 
         val chartData = sortedKeys.map { key ->
+            val parts = key.split("|")
+            val monthKey = parts[0]
+            val currency = parts[1]
             val payments = grouped[key] ?: emptyList()
-            val total = payments.sumOf { it.amount ?: 0.0 }
-            val date = payments.firstOrNull()?.date ?: Date()
-            val label = dateFormatMonth.format(date)
             
-            Triple(label, total, ViewLevel.MonthDetail(key, label, payments))
+            val total = payments.sumOf { it.amount }
+            val symbol = CurrencyHelper.getSymbol(currency)
+            val date = payments.firstOrNull()?.date ?: Date()
+            val monthLabel = dateFormatMonth.format(date)
+            
+            // Unique label: "Oct $", "Oct ₹" if multiple exist for same month?
+            // Or just "Oct" and let the user see the symbol above the bar.
+            // If we have multiple bars for Oct, we must differentiate them or they look like dupes.
+            // Let's append symbol to label if there are multiple currencies in that month?
+            // Simple approach: Always append symbol
+            // "Oct" bar ($) and "Oct" bar (₹) side by side.
+            
+            val label = monthLabel
+            
+            PaymentHistoryChart.ChartItem(
+                label, 
+                total, 
+                symbol, 
+                ViewLevel.MonthDetail(monthKey, monthLabel, payments)
+            )
         }
-
 
         chartView.setChartData(chartData)
         updateList(allPayments)
@@ -269,12 +278,10 @@ class UnifiedHistoryActivity : BaseActivity() {
                 }.start()
         }
 
-        // Robust Auto-Scroll to End
         scrollToEnd()
         
         val hScrollView = findViewById<android.widget.HorizontalScrollView>(R.id.chart_scroll_container)
         hScrollView?.let { scrollView ->
-            // Scroll Haptics for Chart: Tactile feel (tick every 50px)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 var lastHapticScrollX = 0
                 scrollView.setOnScrollChangeListener { _, scrollX, _, _, _ ->
@@ -290,25 +297,38 @@ class UnifiedHistoryActivity : BaseActivity() {
     private fun showMonthDetail(level: ViewLevel.MonthDetail) {
         currentLevel = level
 
+        // Group by Day + Currency
         val groupedDay = level.payments.groupBy { 
             val cal = Calendar.getInstance()
             cal.time = it.date ?: Date()
-            cal.get(Calendar.DAY_OF_MONTH)
+            "${cal.get(Calendar.DAY_OF_MONTH)}|${it.currency}"
         }
 
-        val sortedDays = groupedDay.keys.sorted()
+        val sortedKeys = groupedDay.keys.sortedWith(compareBy<String> { 
+             it.split("|")[0].toInt()
+        }.thenBy { it.split("|")[1] })
 
-        val chartData = sortedDays.map { day ->
-            val payments = groupedDay[day] ?: emptyList()
-            val total = payments.sumOf { it.amount ?: 0.0 }
+        val chartData = sortedKeys.map { key ->
+            val parts = key.split("|")
+            val day = parts[0]
+            val currency = parts[1]
+            val payments = groupedDay[key] ?: emptyList()
+            
+            val total = payments.sumOf { it.amount }
+            val symbol = CurrencyHelper.getSymbol(currency)
             val date = payments.firstOrNull()?.date ?: Date()
             val label = dateFormatDay.format(date)
             
             val dayKey = "${level.monthKey}-$day"
-            Triple(label, total, ViewLevel.DayDetail(dayKey, label, payments))
+            
+            PaymentHistoryChart.ChartItem(
+                label,
+                total,
+                symbol,
+                ViewLevel.DayDetail(dayKey, label, payments)
+            )
         }
         
-
         chartView.setChartData(chartData)
         updateList(level.payments.sortedByDescending { it.date })
         
@@ -325,13 +345,24 @@ class UnifiedHistoryActivity : BaseActivity() {
     private fun showDayDetail(level: ViewLevel.DayDetail) {
         currentLevel = level
 
-        val groupedSub = level.payments.groupBy { it.subscriptionName ?: "Unknown" }
+        val groupedSub = level.payments.groupBy { "${it.subscriptionName ?: "Unknown"}|${it.currency}" }
         
-        val chartData = groupedSub.map { (subName, payments) ->
-            val total = payments.sumOf { it.amount ?: 0.0 }
-            Triple(subName, total, null)
+        val chartData = groupedSub.map { entry ->
+            val parts = entry.key.split("|")
+            val subName = parts[0]
+            val currency = parts[1]
+            val payments = entry.value
+            
+            val total = payments.sumOf { it.amount }
+            val symbol = CurrencyHelper.getSymbol(currency)
+            
+            PaymentHistoryChart.ChartItem(
+                subName,
+                total,
+                symbol,
+                null
+            )
         }
-
 
         chartView.setChartData(chartData)
         updateList(level.payments.sortedByDescending { it.date })

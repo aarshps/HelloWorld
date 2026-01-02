@@ -48,7 +48,8 @@
                     android:text="@string/app_name"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurface"
-                    android:textStyle="normal" />
+                    android:textStyle="normal"
+                    android:includeFontPadding="false" />
             </LinearLayout>
 
             <com.google.android.material.imageview.ShapeableImageView
@@ -178,6 +179,7 @@
         android:layout_marginBottom="100dp"
         android:contentDescription="Payment History"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        app:tint="?attr/colorOnPrimaryContainer"
         app:srcCompat="@drawable/ic_history" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

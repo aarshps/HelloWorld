@@ -74,6 +74,7 @@ class MainActivity : BaseActivity() {
         setContentView(R.layout.activity_main)
 
         // Initialize views
+        // Initialize views
         btnSignIn = findViewById(R.id.btnSignIn)
         profileImage = findViewById(R.id.profile_image)
         searchTriggerLayout = findViewById(R.id.search_trigger_layout)
@@ -270,6 +271,7 @@ class MainActivity : BaseActivity() {
         val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(WEB_CLIENT_ID)
+            .setAutoSelectEnabled(false)
             .build()
 
         val request = GetCredentialRequest.Builder()
@@ -278,12 +280,21 @@ class MainActivity : BaseActivity() {
 
         lifecycleScope.launch {
             try {
+                // Attempt to clear state to force account chooser
+                // Use a timeout so we don't block the UI indefinitely if the system is slow
+                // timeout block removed
+
+
                 val result = credentialManager.getCredential(this@MainActivity, request)
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                 firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
             } catch (e: Exception) {
                 Log.e("Auth", "Credential Manager Error", e)
-                updateUI(false)
+                if (e is androidx.credentials.exceptions.GetCredentialCancellationException) {
+                    // User cancelled
+                } else {
+                   updateUI(false)
+                }
             }
         }
     }
@@ -310,7 +321,6 @@ class MainActivity : BaseActivity() {
             fabHistory.visibility = View.VISIBLE
             
             profileImage.visibility = View.VISIBLE
-            searchTriggerLayout.visibility = View.VISIBLE
 
             auth.currentUser?.photoUrl?.let {
                 Picasso.get().load(it).into(profileImage)

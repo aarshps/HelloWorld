@@ -30,6 +30,12 @@ class AddSubscriptionBottomSheet(
     private val onSave: () -> Unit
 ) : BottomSheetDialogFragment() {
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): android.app.Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        return dialog
+    }
+
     private lateinit var firestore: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private var selectedDueDate: Date? = null
@@ -108,7 +114,6 @@ class AddSubscriptionBottomSheet(
              } else {
                  tilFrequency.visibility = View.VISIBLE
                  frequencyEditText.isEnabled = true
-                 if (frequencyEditText.text.isNullOrEmpty()) frequencyEditText.setText("1")
              }
         }
         setupSelection(categoryAutoComplete, "Select Category", categories, addHaptic)
@@ -126,6 +131,27 @@ class AddSubscriptionBottomSheet(
             }
             costEditText.setText(subscription.cost.toString())
             currencyAutoComplete.setText(subscription.currency, false)
+            // Default to disabled/dimmed while we check for payment history
+            currencyAutoComplete.isEnabled = false
+            currencyAutoComplete.alpha = 0.5f
+
+            val userId = auth.currentUser?.uid
+            val subId = subscription.id
+            if (userId != null && subId != null) {
+                firestore.collection("users").document(userId)
+                    .collection("subscriptions").document(subId)
+                    .collection("payments")
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener { snapshots ->
+                        if (snapshots.isEmpty && isAdded) {
+                            // No payments exist, safe to unlock currency editing
+                            currencyAutoComplete.isEnabled = true
+                            currencyAutoComplete.alpha = 1.0f
+                        }
+                    }
+            }
+            
             categoryAutoComplete.setText(subscription.category, false)
 
             val rec = subscription.recurrence
@@ -184,13 +210,9 @@ class AddSubscriptionBottomSheet(
 
         } else {
              statusSwitch.visibility = View.GONE
-             frequencyEditText.setText("1")
-             recurrenceAutoComplete.setText(recurrenceOptions[0], false)
-             if (recurrenceOptions[0] == "Custom") {
-                 tilFrequency.visibility = View.GONE
-             } else {
-                 tilFrequency.visibility = View.VISIBLE
-             }
+             frequencyEditText.setText("")
+             recurrenceAutoComplete.setText("")
+             tilFrequency.visibility = View.VISIBLE
         }
         
         currencyAutoComplete.setOnDismissListener { currencyAutoComplete.clearFocus() }

@@ -23,6 +23,7 @@ class SearchActivity : BaseActivity() {
     private lateinit var searchEditText: EditText
     private lateinit var categoryChipGroup: ChipGroup
     private lateinit var searchRecyclerView: RecyclerView
+    private lateinit var emptyStateContainer: View
     private lateinit var adapter: SubscriptionAdapter
     
     private var allSubscriptions: List<Subscription> = emptyList()
@@ -35,6 +36,7 @@ class SearchActivity : BaseActivity() {
         
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         auth = FirebaseAuth.getInstance()
@@ -43,6 +45,7 @@ class SearchActivity : BaseActivity() {
         searchEditText = findViewById(R.id.search_edit_text)
         categoryChipGroup = findViewById(R.id.search_category_chip_group)
         searchRecyclerView = findViewById(R.id.search_recycler_view)
+        emptyStateContainer = findViewById(R.id.empty_state_container)
 
         searchRecyclerView.layoutManager = LinearLayoutManager(this)
         
@@ -128,11 +131,18 @@ class SearchActivity : BaseActivity() {
                 .get()
                 .addOnSuccessListener { snapshots ->
                     allSubscriptions = snapshots.toObjects(Subscription::class.java)
-                    performSearch()
+                    
+                    val targetView = if (allSubscriptions.isEmpty()) emptyStateContainer else contentContainer
+                    val otherView = if (allSubscriptions.isEmpty()) contentContainer else emptyStateContainer
+
+                    if (allSubscriptions.isNotEmpty()) {
+                        performSearch()
+                    }
                     
                     // Smooth Crossfade
-                    contentContainer.alpha = 0f
-                    contentContainer.visibility = View.VISIBLE
+                    targetView.alpha = 0f
+                    targetView.visibility = View.VISIBLE
+                    otherView.visibility = View.GONE
                     
                     loadingContainer.animate()
                         .alpha(0f)
@@ -141,7 +151,7 @@ class SearchActivity : BaseActivity() {
                         .withEndAction { loadingContainer.visibility = View.GONE }
                         .start()
 
-                    contentContainer.animate()
+                    targetView.animate()
                         .alpha(1f)
                         .setDuration(Constants.ANIM_DURATION_LONG)
                         .setStartDelay(Constants.ANIM_DURATION_SHORT)

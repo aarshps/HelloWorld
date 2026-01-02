@@ -11,6 +11,12 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.core.widget.NestedScrollView
+import androidx.credentials.CredentialManager
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.Math.abs
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.slider.Slider
@@ -30,7 +36,8 @@ class SettingsActivity : BaseActivity() {
         setContentView(R.layout.activity_settings)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowTitleEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         auth = FirebaseAuth.getInstance()
 
@@ -41,7 +48,7 @@ class SettingsActivity : BaseActivity() {
         setupNotificationDaysSetting()
         setupHapticsToggle()
         setupPrivacyPolicy()
-        setupPaymentViewToggle()
+        setupPrivacyPolicy()
         setupScrollHaptics()
     }
 
@@ -57,31 +64,27 @@ class SettingsActivity : BaseActivity() {
         })
     }
 
-    private fun setupPaymentViewToggle() {
-        val paymentViewToggleGroup = findViewById<ChipGroup>(R.id.payment_view_toggle_group)
-        val currentDefault = PreferenceHelper.getDefaultPaymentView(this)
-        
-        if (currentDefault == "chart") {
-            paymentViewToggleGroup.check(R.id.view_chart)
-        } else {
-            paymentViewToggleGroup.check(R.id.view_list)
-        }
 
-        paymentViewToggleGroup.setOnCheckedStateChangeListener { group, checkedIds ->
-            if (checkedIds.isNotEmpty()) {
-                PreferenceHelper.performHaptics(group, HapticFeedbackConstants.KEYBOARD_TAP)
-                val mode = if (checkedIds[0] == R.id.view_chart) "chart" else "list"
-                PreferenceHelper.setDefaultPaymentView(this, mode)
-            }
-        }
-    }
 
     private fun setupLogoutButton() {
         val logoutButton = findViewById<View>(R.id.logout_button)
         logoutButton.setOnClickListener {
             PreferenceHelper.performHaptics(window.decorView, HapticFeedbackConstants.CONFIRM)
+            
+            // Fire and forget: Clear system credential state in background
+            // We use a detached scope because the activity will die immediately
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val credentialManager = CredentialManager.create(applicationContext)
+                    credentialManager.clearCredentialState(ClearCredentialStateRequest())
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            
+            // Instant navigation
             auth.signOut()
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this@SettingsActivity, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()

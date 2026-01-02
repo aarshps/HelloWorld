@@ -19,11 +19,20 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Payment History"
-            app:titleTextAppearance="?attr/textAppearanceTitleLarge"
             app:contentInsetStart="24dp"
             app:contentInsetEnd="24dp"
-            app:navigationIcon="@drawable/ic_back" />
+            app:navigationIcon="@drawable/ic_back">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Payment History"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_gravity="center_vertical|start"
+                android:includeFontPadding="false" />
+
+        </com.google.android.material.appbar.MaterialToolbar>
             
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -69,6 +78,8 @@
                             android:layout_height="wrap_content"
                             android:fillViewport="true"
                             android:scrollbars="none"
+                            android:overScrollMode="never"
+                            android:scrollbarThumbHorizontal="@null"
                             android:clipChildren="false"
                             android:clipToPadding="false">
                 

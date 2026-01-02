@@ -24,6 +24,12 @@ class SelectionBottomSheet(
     private val onOptionSelected: (String) -> Unit
 ) : BottomSheetDialogFragment() {
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): android.app.Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState)
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+        return dialog
+    }
+
     private val chipMap = mutableMapOf<String, Chip>()
 
     override fun onCreateView(
